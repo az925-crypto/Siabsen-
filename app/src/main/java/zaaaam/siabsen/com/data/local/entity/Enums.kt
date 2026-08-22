@@ -46,7 +46,7 @@ enum class AttendanceStatus {
             DISPENSATION -> 0xFF00838F
             EARLY_LEAVE -> 0xFFEF6C00
             DUTY -> 0xFF37474F
-        }.value
+        }
     }
 }
 
