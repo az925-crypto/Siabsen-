@@ -1,0 +1,1056 @@
+Bisa banget. Kalau mau bikin aplikasi absensi sekolah Android yang serius, gue bakal desain bukan cuma tombol Hadir/Izin/Sakit, tapi sistem yang bisa dipakai siswa + guru + wali kelas + admin, dan tetap offline-first.
+
+🏫 1. Dashboard
+
+Siswa
+
+Status kehadiran hari ini
+
+Jam masuk
+
+Jam pulang
+
+Status: Hadir / Terlambat / Izin / Sakit / Alpa
+
+Persentase kehadiran
+
+Rekap bulan ini
+
+Jadwal hari ini
+
+Pengumuman
+
+
+Contoh:
+
+SELAMAT PAGI, AZZAM 👋
+
+STATUS HARI INI
+🟢 HADIR
+Masuk 06:27
+
+KEHADIRAN
+█████████░ 92%
+
+Bulan ini
+Hadir      18
+Terlambat   2
+Izin        1
+Sakit       0
+Alpa        0
+
+
+---
+
+👨‍🏫 2. Role Sistem
+
+Minimal:
+
+👨‍🎓 Siswa
+
+Check-in
+
+Check-out
+
+Lihat riwayat
+
+Ajukan izin/sakit
+
+Lihat jadwal
+
+Lihat statistik
+
+
+👨‍🏫 Guru
+
+Ambil absensi kelas
+
+Lihat daftar siswa
+
+Edit status absensi
+
+Verifikasi izin
+
+Lihat laporan kelas
+
+
+👔 Wali Kelas
+
+Semua fitur guru
+
+Rekap kelas
+
+Statistik siswa
+
+Export laporan
+
+Monitoring siswa sering terlambat
+
+
+🛠️ Admin
+
+Kelola siswa
+
+Kelola guru
+
+Kelola kelas
+
+Kelola mata pelajaran
+
+Kelola tahun ajaran
+
+Pengaturan absensi
+
+Backup/restore
+
+Audit log
+
+
+
+---
+
+📍 3. Sistem Check-in
+
+Ini bagian yang bisa lu bikin menarik.
+
+Metode absensi
+
+Mode 1 — Manual oleh guru
+
+Guru membuka kelas:
+
+> XI IPA 2 → Absensi
+
+
+
+Lalu:
+
+Ahmad       🟢 Hadir
+Budi        🟢 Hadir
+Citra       🟡 Terlambat
+Dimas       🔵 Izin
+Eka         🔴 Alpa
+
+Mode 2 — QR Code
+
+Guru membuat QR untuk sesi absensi.
+
+Siswa:
+
+> Scan QR → validasi → hadir.
+
+
+
+QR harus memiliki:
+
+Session ID
+
+Timestamp
+
+Random token
+
+Expiration
+
+
+Jangan cuma QR berisi:
+
+"XI IPA 2"
+
+karena gampang difoto dan disebarkan.
+
+
+---
+
+🔐 4. Anti-Fraud Absensi
+
+Nah ini bagian yang seru.
+
+Untuk QR:
+
+QR expiration
+
+One-time token
+
+Session ID
+
+Device binding opsional
+
+Local validation
+
+Prevent duplicate attendance
+
+Timestamp validation
+
+
+Kalau mau lebih advanced:
+
+Location validation
+
+Jika perangkat punya GPS:
+
+> Absensi hanya valid dalam radius tertentu.
+
+
+
+Misalnya:
+
+School radius
+150 meters
+
+Tapi jangan menjadikan GPS sebagai satu-satunya metode keamanan, karena lokasi perangkat bisa dimanipulasi.
+
+Wi-Fi validation
+
+Opsional:
+
+> Hanya bisa check-in ketika terhubung ke Wi-Fi sekolah.
+
+
+
+Ini lebih cocok sebagai sinyal tambahan, bukan jaminan keamanan absolut.
+
+
+---
+
+⏰ 5. Jadwal Absensi
+
+Admin dapat menentukan:
+
+Senin–Jumat
+
+Check-in
+05:30 – 07:00
+
+Tepat waktu
+≤ 06:45
+
+Terlambat
+06:46 – 07:30
+
+Tidak hadir
+> 07:30
+
+Bisa dibuat configurable.
+
+
+---
+
+🕐 6. Attendance Status
+
+Minimal:
+
+Hadir
+
+Terlambat
+
+Izin
+
+Sakit
+
+Alpa
+
+Dispensasi
+
+Pulang cepat
+
+Dinas/kegiatan sekolah
+
+
+Setiap status bisa punya:
+
+Timestamp
+
+Catatan
+
+Bukti
+
+Approved by
+
+Updated by
+
+
+
+---
+
+📝 7. Pengajuan Izin
+
+Siswa:
+
+Jenis:
+[ Sakit ▼ ]
+
+Tanggal:
+22 Aug 2026
+
+Alasan:
+Demam
+
+Lampiran:
+[ Tambah foto ]
+
+[ KIRIM ]
+
+Kemudian:
+
+PENDING
+   ↓
+Guru/Wali Kelas
+   ↓
+APPROVED / REJECTED
+
+
+---
+
+📷 8. Lampiran Bukti
+
+Untuk izin/sakit:
+
+Foto surat
+
+Dokumen
+
+Foto bukti
+
+PDF
+
+
+Simpan secara lokal jika versi offline.
+
+
+---
+
+📊 9. Statistik Kehadiran
+
+Siswa bisa melihat:
+
+KEHADIRAN
+
+Hadir       87%
+Terlambat    6%
+Izin         4%
+Sakit        2%
+Alpa         1%
+
+Grafik:
+
+Mingguan
+
+Bulanan
+
+Semester
+
+Tahun ajaran
+
+
+
+---
+
+🏫 10. Rekap Kelas
+
+Guru:
+
+XI IPA 2
+22 August
+
+Hadir       31
+Terlambat    2
+Izin         1
+Sakit        0
+Alpa         1
+
+Total       35
+
+Bisa lihat detail per siswa.
+
+
+---
+
+🚨 11. Early Warning
+
+Ini menurut gue fitur bagus.
+
+Sistem otomatis memberi tanda:
+
+⚠ PERHATIAN
+
+Budi
+Attendance: 78%
+
+Alpa: 4
+Terlambat: 7
+
+Kategori:
+
+🟢 Normal
+
+🟡 Perlu perhatian
+
+🔴 Risiko kehadiran rendah
+
+
+Threshold bisa diatur admin.
+
+
+---
+
+📈 12. Dashboard Guru
+
+Guru bisa melihat:
+
+Jumlah siswa hadir
+
+Terlambat
+
+Izin
+
+Sakit
+
+Alpa
+
+Attendance rate
+
+Siswa belum absen
+
+Siswa paling sering terlambat
+
+
+
+---
+
+📅 13. Calendar Attendance
+
+Kalender siswa:
+
+AUGUST 2026
+
+M  T  W  T  F
+
+3  🟢 🟢 🟢 🟢
+10 🟢 🟡 🟢 🔵
+17 🟢 🟢 🟢 🔴
+24
+
+Tap tanggal → detail absensi.
+
+
+---
+
+📚 14. Absensi Per Mata Pelajaran
+
+Kalau sekolah ingin lebih detail:
+
+07:00
+Matematika
+🟢 Hadir
+
+09:00
+Fisika
+🟡 Terlambat
+
+11:00
+Sejarah
+🟢 Hadir
+
+Jadi bukan cuma absensi masuk sekolah, tapi juga attendance per pelajaran.
+
+
+---
+
+👨‍🏫 15. Guru & Mata Pelajaran
+
+Database:
+
+Teacher
+Student
+Class
+Subject
+Schedule
+AttendanceSession
+AttendanceRecord
+
+Guru dapat memiliki banyak mata pelajaran.
+
+
+---
+
+📆 16. Jadwal Pelajaran
+
+Siswa melihat:
+
+SENIN
+
+06:30 — Upacara
+07:30 — Matematika
+09:00 — Fisika
+10:30 — Istirahat
+11:00 — Sejarah
+
+Tap jadwal → bisa melihat absensi pelajaran tersebut.
+
+
+---
+
+🔔 17. Notification
+
+Local notification:
+
+Siswa
+
+Reminder masuk
+
+Belum melakukan absensi
+
+Absensi berhasil
+
+Izin disetujui
+
+Izin ditolak
+
+
+Guru
+
+Kelas belum diabsen
+
+Ada pengajuan izin
+
+Siswa belum hadir
+
+
+Wali kelas
+
+Attendance rendah
+
+Banyak siswa terlambat
+
+
+
+---
+
+📱 18. QR Session
+
+Guru:
+
+XI IPA 2
+
+ABSENSI HARI INI
+
+┌─────────────┐
+│             │
+│     QR      │
+│             │
+└─────────────┘
+
+Expires in
+00:42
+
+QR otomatis berubah setiap beberapa detik/menit.
+
+Ini jauh lebih aman daripada QR statis.
+
+
+---
+
+🔄 19. Offline Mode
+
+Ini penting kalau lu mau bikin sesuai gaya Chasly.
+
+Saat internet mati:
+
+Siswa
+
+Bisa scan QR lokal
+
+Absensi disimpan lokal
+
+
+Guru
+
+Bisa membuat session
+
+Bisa mengambil absensi
+
+Data disimpan lokal
+
+
+Saat internet kembali:
+
+LOCAL DATA
+    ↓
+SYNC QUEUE
+    ↓
+SERVER
+    ↓
+SYNCED
+
+Tapi kalau versi pertama benar-benar offline, cukup:
+
+> Semua data hanya tersimpan di device.
+
+
+
+
+---
+
+💾 20. Backup & Restore
+
+Admin:
+
+Backup
+
+school_attendance_2026-08-22.json
+
+Berisi:
+
+Student
+
+Teacher
+
+Class
+
+Schedule
+
+Attendance
+
+Permission
+
+Settings
+
+Audit log
+
+
+Restore
+
+Replace
+
+Merge
+
+
+Tambahkan:
+
+Backup version
+
+Timestamp
+
+Integrity check
+
+
+
+---
+
+📤 21. Export
+
+CSV
+
+Rekap siswa
+
+Rekap kelas
+
+Rekap guru
+
+Attendance per bulan
+
+Attendance per semester
+
+
+PDF
+
+Rekap kelas
+
+Rekap siswa
+
+Attendance report
+
+Surat/rekap izin
+
+
+
+---
+
+🔒 22. Security
+
+Karena data siswa sensitif, ini harus serius.
+
+App lock
+
+PIN
+
+Biometric
+
+Auto lock
+
+
+Role permission
+
+Guru nggak boleh mengakses data admin.
+
+Siswa nggak boleh mengubah attendance sendiri.
+
+Audit log
+
+Misalnya:
+
+14:21
+
+Teacher: Budi
+
+Changed attendance
+
+Student: Azzam
+OLD: ALPA
+NEW: HADIR
+
+Reason:
+Attendance correction
+
+Jangan cuma menyimpan:
+
+status = HADIR
+
+Simpan juga siapa yang mengubah dan kapan.
+
+
+---
+
+🧾 23. Koreksi Absensi
+
+Kalau guru salah pencet:
+
+ALPA → HADIR
+
+Harus ada:
+
+Old status
+
+New status
+
+Reason
+
+Changed by
+
+Timestamp
+
+
+Untuk perubahan sensitif bisa minta PIN wali kelas/admin.
+
+
+---
+
+👥 24. Import Data
+
+Admin bisa import:
+
+CSV
+
+NIS,Nama,Kelas
+001,Azzam,XII IPA 1
+002,Budi,XII IPA 1
+003,Citra,XII IPA 2
+
+Jadi nggak perlu input 500 siswa satu-satu. 💀
+
+
+---
+
+🔎 25. Global Search
+
+Cari:
+
+Nama siswa
+
+NIS
+
+NISN
+
+Kelas
+
+Guru
+
+Mata pelajaran
+
+
+Contoh:
+
+> Azzam
+
+
+
+→ Profile siswa
+→ Attendance
+→ Statistik
+→ Riwayat izin
+
+
+---
+
+👤 26. Student Profile
+
+AZZAM ALFARISY
+
+XII IPA 1
+NIS: 001
+
+ATTENDANCE
+92%
+
+Hadir      88
+Terlambat   4
+Izin        2
+Sakit       1
+Alpa        1
+
+
+---
+
+⚙️ 27. Pengaturan Sekolah
+
+Admin:
+
+Nama sekolah
+
+Logo
+
+Alamat
+
+Tahun ajaran
+
+Semester
+
+Jam masuk
+
+Batas terlambat
+
+Radius absensi
+
+Metode absensi
+
+Hari sekolah
+
+Hari libur
+
+Threshold attendance
+
+Format laporan
+
+
+
+---
+
+🗓️ 28. Academic Year
+
+Jangan hardcode tahun.
+
+Contoh:
+
+2026/2027
+├── Semester Ganjil
+└── Semester Genap
+
+Data attendance harus terkait dengan periode akademik.
+
+
+---
+
+🏖️ 29. Kalender Sekolah
+
+Admin bisa menentukan:
+
+Hari sekolah
+
+Libur
+
+Hari besar
+
+Ujian
+
+Kegiatan sekolah
+
+Study tour
+
+Class meeting
+
+
+Supaya sistem nggak menganggap siswa alpa ketika sekolah memang libur.
+
+
+---
+
+🧠 30. Insight
+
+Kalau mau sedikit “Chasly vibes” 😭:
+
+💡 INSIGHT
+
+Kehadiran kelas XI IPA 2 minggu ini
+naik 4% dibanding minggu lalu.
+
+⚠ 3 siswa memiliki attendance
+di bawah 80%.
+
+📈 Senin memiliki tingkat keterlambatan
+tertinggi minggu ini.
+
+Semua bisa dihitung lokal tanpa AI.
+
+
+---
+
+🧩 31. Database Entity
+
+Minimal:
+
+User
+Role
+Permission
+
+Student
+Teacher
+
+Class
+Subject
+Schedule
+
+AcademicYear
+Semester
+SchoolCalendar
+
+AttendanceSession
+AttendanceRecord
+
+AttendanceCorrection
+LeaveRequest
+LeaveAttachment
+
+Notification
+AuditLog
+
+AppSettings
+SchoolSettings
+
+
+---
+
+🧠 32. Hal yang Paling Penting Secara Teknis
+
+Attendance jangan dibuat sekadar:
+
+student.status = "HADIR"
+
+Lebih aman:
+
+AttendanceSession
+        ↓
+AttendanceRecord
+        ↓
+Student
+
+Contoh:
+
+AttendanceSession
+ID: SESSION-001
+Class: XII IPA 1
+Date: 22-08-2026
+Start: 06:30
+End: 07:30
+
+Kemudian:
+
+AttendanceRecord
+
+Student: 001
+Session: SESSION-001
+Status: PRESENT
+Timestamp: 06:27
+Method: QR
+Device: ...
+
+Dengan begitu nanti lu bisa punya attendance per hari, per kelas, per mata pelajaran, bahkan per sesi tanpa merusak struktur database.
+
+
+---
+
+🚀 Roadmap
+
+MVP
+
+[ ] Student
+
+[ ] Teacher
+
+[ ] Class
+
+[ ] Attendance
+
+[ ] Manual attendance
+
+[ ] Dashboard
+
+[ ] History
+
+[ ] Basic statistics
+
+
+V1
+
+[ ] QR attendance
+
+[ ] Schedule
+
+[ ] Leave request
+
+[ ] Notifications
+
+[ ] Calendar
+
+[ ] Export
+
+[ ] Backup/restore
+
+
+V2
+
+[ ] Multi-role
+
+[ ] Permission
+
+[ ] Audit log
+
+[ ] Attendance correction
+
+[ ] Shift/session
+
+[ ] Early warning
+
+[ ] Advanced reports
+
+
+V3
+
+[ ] Offline sync architecture
+
+[ ] Multi-device
+
+[ ] Cloud backend
+
+[ ] Parent account
+
+[ ] Web dashboard
+
+[ ] Advanced analytics
+
+
+
+---
+
+🔥 Kalau mau dibuat dengan gaya Chasly
+
+Gue justru bakal bikin offline-first + Kotlin + Compose + Room + DataStore + WorkManager lagi.
+
+Struktur tab siswa bisa:
+
+🏠 Beranda | 📋 Absensi | 📅 Jadwal | 📊 Statistik | 👤 Akun
+
+Sedangkan guru:
+
+🏠 Dashboard | 📋 Kelas | 📊 Laporan | 👥 Siswa | ⚙️ Akun
+
+Dan satu hal yang menurut gue wajib: jangan kasih siswa kemampuan mengubah status absensinya sendiri. Kalau ada koreksi, harus melalui guru/wali kelas dan masuk audit log. Itu yang membedakan aplikasi absensi beneran dengan sekadar CRUD attendance.

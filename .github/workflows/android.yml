@@ -1,0 +1,42 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle (with cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Debug APK
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Build Release APK (unsigned)
+        run: ./gradlew :app:assembleRelease --stacktrace
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: siabsen-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: siabsen-release-unsigned-apk
+          path: app/build/outputs/apk/release/*.apk
