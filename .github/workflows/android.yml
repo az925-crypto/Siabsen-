@@ -7,6 +7,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,20 +26,24 @@ jobs:
       - name: Setup Gradle (with cache)
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Debug APK
-        run: ./gradlew :app:assembleDebug --stacktrace
-
-      - name: Build Release APK (unsigned)
+      - name: Build Signed Release APK
         run: ./gradlew :app:assembleRelease --stacktrace
 
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: siabsen-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+      - name: Prepare APK
+        run: cp app/build/outputs/apk/release/app-release.apk SiAbsen-latest.apk
 
-      - name: Upload Release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: siabsen-release-unsigned-apk
-          path: app/build/outputs/apk/release/*.apk
+      - name: Publish ke GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh release view latest --repo "$REPO" >/dev/null 2>&1 \
+            || gh release create latest --repo "$REPO" \
+                 --title "SiAbsen — APK Terbaru" \
+                 --notes "Download **SiAbsen-latest.apk**, lalu install (Android 8+). Di-sign dengan debug key untuk keperluan testing."
+          gh release upload latest SiAbsen-latest.apk --repo "$REPO" --clobber
+
+      - name: Info download
+        env:
+          REPO: ${{ github.repository }}
+        run: echo "APK tersedia di https://github.com/$REPO/releases/latest"
