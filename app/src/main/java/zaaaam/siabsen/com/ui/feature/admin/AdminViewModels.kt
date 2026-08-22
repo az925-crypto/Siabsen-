@@ -93,7 +93,7 @@ class SettingsVm @Inject constructor(
 
     val saved = MutableStateFlow(false)
 
-    fun save(next: SettingsRepository.SchoolSettings) {
+    fun save(next: SchoolSettings) {
         viewModelScope.launch {
             settingsRepo.save { next }
             saved.value = true
