@@ -165,6 +165,7 @@ fun LeaveRequest(nav: NavController, vm: LeaveVm = hiltViewModel()) {
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun DateRow(label: String, value: LocalDate, onChange: (LocalDate) -> Unit) {
     var open by remember { mutableStateOf(false) }

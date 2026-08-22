@@ -95,8 +95,8 @@ fun GlobalSearchScreen(nav: NavController, vm: SearchVm = hiltViewModel()) {
 
 @HiltViewModel
 class StudentDetailVm @Inject constructor(
-    roster: RosterRepository,
-    attendance: AttendanceRepository,
+    private val roster: RosterRepository,
+    private val attendance: AttendanceRepository,
 ) : ViewModel() {
 
     data class Ui(

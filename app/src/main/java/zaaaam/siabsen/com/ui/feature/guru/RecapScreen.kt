@@ -53,7 +53,7 @@ data class RecapUi(
 @HiltViewModel
 class RecapVm @Inject constructor(
     private val attendance: AttendanceRepository,
-    roster: RosterRepository,
+    private val roster: RosterRepository,
 ) : ViewModel() {
 
     val classId = MutableStateFlow(0L)

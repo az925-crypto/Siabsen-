@@ -121,6 +121,5 @@ class BackupRepository @Inject constructor(
         db.openHelper.writableDatabase.execSQL("DELETE FROM classes")
         db.openHelper.writableDatabase.execSQL("DELETE FROM teachers")
         db.openHelper.writableDatabase.execSQL("DELETE FROM users")
-        dao.clearCalendar()
     }
 }

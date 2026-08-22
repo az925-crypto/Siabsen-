@@ -96,7 +96,7 @@ fun LeaveApproval(nav: NavController, vm: LeaveApprovalVm = hiltViewModel()) {
 
     deciding?.let { target ->
         DecideDialog(
-            studentName = pending.firstOrNull { it.leave.id == target.full.id }?.studentName ?: "Siswa",
+            studentName = pending.firstOrNull { it.leave.id == target.id }?.studentName ?: "Siswa",
             onDismiss = { deciding = null },
             onDecide = { approve, note ->
                 vm.decide(target, approve, note) {

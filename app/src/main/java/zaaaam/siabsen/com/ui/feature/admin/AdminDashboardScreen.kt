@@ -85,9 +85,9 @@ fun Dashboard(nav: NavController, vm: AdminDashboardVm = hiltViewModel()) {
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatCard("Siswa", "${ov.students}", Modifier.weight(1f))
-                StatCard("Guru", "${ov.teachers}", Modifier.weight(1f))
-                StatCard("Kelas", "${ov.classes}", Modifier.weight(1f))
+                StatCard("Siswa", "${ov.students}", modifier = Modifier.weight(1f))
+                StatCard("Guru", "${ov.teachers}", modifier = Modifier.weight(1f))
+                StatCard("Kelas", "${ov.classes}", modifier = Modifier.weight(1f))
             }
         }
         item { Text("Master Data", style = MaterialTheme.typography.titleMedium) }

@@ -32,7 +32,7 @@ fun BackupRestore(nav: NavController, vm: BackupVm = hiltViewModel()) {
     }
     var restoreReplace by rememberTrue()
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        vm.restore(uri, restoreReplace.value)
+        vm.restore(uri, restoreReplace)
     }
 
     SubPageScaffold(title = "Backup & Restore") { mod ->
@@ -60,11 +60,11 @@ fun BackupRestore(nav: NavController, vm: BackupVm = hiltViewModel()) {
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     OutlinedButton(onClick = {
-                        restoreReplace.value = false
+                        restoreReplace = false
                         restoreLauncher.launch(arrayOf("application/json", "text/*"))
                     }, modifier = Modifier.fillMaxWidth()) { Text("Restore — Merge") }
                     OutlinedButton(onClick = {
-                        restoreReplace.value = true
+                        restoreReplace = true
                         restoreLauncher.launch(arrayOf("application/json", "text/*"))
                     }, modifier = Modifier.fillMaxWidth()) { Text("Restore — Replace") }
                 }

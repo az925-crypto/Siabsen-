@@ -34,7 +34,7 @@ class RosterRepository @Inject constructor(
         dao.upsertStudent(s)
         audit.log(
             if (old == null) "CREATE_STUDENT" else "UPDATE_STUDENT",
-            "STUDENT", s.id, "${s.nis} ${s.name} kelas=${s.classId}"
+            "STUDENT", s.id, "${s.id} ${s.name} kelas=${s.classId}"
         )
     }
 

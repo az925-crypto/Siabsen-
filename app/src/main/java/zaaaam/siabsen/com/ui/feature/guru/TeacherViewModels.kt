@@ -34,7 +34,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TeacherDashboardVm @Inject constructor(
-    attendance: AttendanceRepository,
+    private val attendance: AttendanceRepository,
     private val settingsRepo: SettingsRepository,
 ) : ViewModel() {
 
@@ -122,10 +122,10 @@ class TakeAttendanceVm @Inject constructor(
     fun correct(student: StudentRow, newStatus: AttendanceStatus, reason: String, onDone: (String) -> Unit, onError: (String) -> Unit) {
         val sid = sessionId.value ?: return onError("Sesi belum siap")
         viewModelScope.launch {
-            val existing = records.value.firstOrNull { it.record.studentId == student.student.id }
+            val existing = attendance.recordOf(sid, student.student.id)
             when {
                 existing != null ->
-                    when (val res = attendance.correct(existing.record, newStatus, reason)) {
+                    when (val res = attendance.correct(existing, newStatus, reason)) {
                         is CheckResult.Success -> onDone(res.message)
                         is CheckResult.Failure -> onError(res.reason)
                     }

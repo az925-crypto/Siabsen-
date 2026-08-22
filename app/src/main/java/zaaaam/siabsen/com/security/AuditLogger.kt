@@ -10,7 +10,7 @@ class AuditLogger @Inject constructor(
     private val auditDao: AuditDao,
     private val session: SessionManager,
 ) {
-    suspend fun log(action: String, targetType: String? = null, targetId: String? = null, details: String) {
+    suspend fun log(action: String, targetType: String? = null, targetId: String? = null, details: String = "") {
         auditDao.insert(
             AuditLogEntity(
                 actorUserId = session.currentUserId,

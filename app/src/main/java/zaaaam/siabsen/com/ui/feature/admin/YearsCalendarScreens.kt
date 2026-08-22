@@ -166,6 +166,7 @@ fun CalendarManage(nav: NavController, vm: AcademicVm = hiltViewModel()) {
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun CalendarDayDialog(onDismiss: () -> Unit, onSave: (LocalDate, CalendarDayType, String?) -> Unit) {
     var type by remember { mutableStateOf(CalendarDayType.HOLIDAY) }

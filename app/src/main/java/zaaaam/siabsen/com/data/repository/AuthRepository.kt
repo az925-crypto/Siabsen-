@@ -22,6 +22,7 @@ class AuthRepository @Inject constructor(
     private val hasher: PinHasher,
     private val session: SessionManager,
     private val audit: AuditLogger,
+    private val settingsRepo: SettingsRepository,
 ) {
     fun observeActiveUsers() = rosterDao.observeActiveUsers()
 

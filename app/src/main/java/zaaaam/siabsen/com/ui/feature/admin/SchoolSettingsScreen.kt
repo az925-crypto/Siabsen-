@@ -40,7 +40,7 @@ fun SchoolSettings(nav: NavController, vm: SettingsVm = hiltViewModel()) {
     val saved by vm.saved.collectAsState()
     var form by remember(s) { mutableStateOf(s) }
 
-    fun field(label: String, value: String, onChange: (String) -> Unit) {
+    @Composable fun field(label: String, value: String, onChange: (String) -> Unit) {
         OutlinedTextField(value = value, onValueChange = onChange, label = { Text(label) }, modifier = Modifier.fillMaxWidth())
     }
 

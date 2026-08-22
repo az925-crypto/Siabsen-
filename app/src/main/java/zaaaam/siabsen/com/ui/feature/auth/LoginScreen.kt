@@ -33,9 +33,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import zaaaam.siabsen.com.data.local.entity.Role
 import zaaaam.siabsen.com.data.local.entity.UserEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import zaaaam.siabsen.com.security.SessionManager
 import zaaaam.siabsen.com.ui.components.Avatar
 import zaaaam.siabsen.com.ui.navigation.Routes

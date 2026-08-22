@@ -22,6 +22,7 @@ import zaaaam.siabsen.com.data.local.entity.SubjectEntity
 import zaaaam.siabsen.com.data.local.entity.TeacherEntity
 import zaaaam.siabsen.com.data.repository.AttendanceRepository
 import zaaaam.siabsen.com.data.repository.RosterRepository
+import zaaaam.siabsen.com.data.repository.SchoolSettings
 import zaaaam.siabsen.com.data.repository.SettingsRepository
 import zaaaam.siabsen.com.security.PinHasher
 import java.time.LocalDate
@@ -88,7 +89,7 @@ class SettingsVm @Inject constructor(
     private val settingsRepo: SettingsRepository,
 ) : ViewModel() {
 
-    val settings = settingsRepo.settings.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsRepository.SchoolSettings())
+    val settings = settingsRepo.settings.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SchoolSettings())
 
     val saved = MutableStateFlow(false)
 

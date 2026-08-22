@@ -26,8 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import zaaaam.siabsen.com.data.local.entity.AttendanceStatus
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import zaaaam.siabsen.com.security.SessionManager
 import zaaaam.siabsen.com.ui.components.EmptyState
 import zaaaam.siabsen.com.ui.components.statusColor
