@@ -23,6 +23,10 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Signed dengan debug key bawaan AGP (dibuat otomatis saat build)
+            // supaya APK hasil CI langsung bisa dipasang.
+            // Untuk produksi: ganti dengan keystore release via secrets.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
