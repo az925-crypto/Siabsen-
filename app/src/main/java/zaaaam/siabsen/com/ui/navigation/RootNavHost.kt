@@ -41,7 +41,7 @@ import zaaaam.siabsen.com.ui.feature.admin.TeachersManage
 import zaaaam.siabsen.com.ui.feature.admin.YearsManage
 import zaaaam.siabsen.com.ui.feature.auth.LoginScreen
 import zaaaam.siabsen.com.ui.feature.guru.ClassList
-import zaaaam.siabsen.com.ui.feature.guru.Dashboard as TeacherDashboardScreen
+import zaaaam.siabsen.com.ui.feature.guru.TeacherDashboard as TeacherDashboardScreen
 import zaaaam.siabsen.com.ui.feature.guru.LeaveApproval
 import zaaaam.siabsen.com.ui.feature.guru.QrBroadcast
 import zaaaam.siabsen.com.ui.feature.guru.Recap

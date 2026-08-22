@@ -97,6 +97,9 @@ class AttendanceRepository @Inject constructor(
         audit.log("CLOSE_SESSION", "SESSION", sessionId, "")
     }
 
+    suspend fun recordOf(sessionId: String, studentId: String) =
+        attendanceDao.recordOf(sessionId, studentId)
+
     suspend fun sessionById(id: String) = attendanceDao.sessionById(id)
     fun observeSession(id: String) = attendanceDao.observeSession(id)
 

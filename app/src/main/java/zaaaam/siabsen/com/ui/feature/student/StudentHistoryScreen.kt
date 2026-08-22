@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -86,11 +89,11 @@ fun StudentHistory(nav: NavController, vm: HistoryVm = hiltViewModel()) {
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     androidx.compose.material3.IconButton(onClick = { vm.month.value = month.minusMonths(1) }) {
-                        androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Filled.ChevronLeft, contentDescription = "Bulan lalu")
+                        Icon(Icons.Filled.ChevronLeft, contentDescription = "Bulan lalu")
                     }
                     MonthCalendar(month, { vm.dotFor(it) }, selected, { vm.selected.value = it })
                     androidx.compose.material3.IconButton(onClick = { vm.month.value = month.plusMonths(1) }) {
-                        androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Filled.ChevronRight, contentDescription = "Bulan depan")
+                        Icon(Icons.Filled.ChevronRight, contentDescription = "Bulan depan")
                     }
                 }
             }

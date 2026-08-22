@@ -128,6 +128,7 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = hiltViewModel()) {
     }
 }
 
+@Composable
 private fun roleColor(r: Role) = when (r) {
     Role.ADMIN -> MaterialTheme.colorScheme.error
     Role.HOMEROOM_TEACHER -> MaterialTheme.colorScheme.tertiary
