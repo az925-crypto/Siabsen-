@@ -13,6 +13,7 @@ import zaaaam.siabsen.com.data.local.entity.AttendanceCorrectionEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceRecordEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceSessionEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceStatus
+import zaaaam.siabsen.com.data.local.entity.StudentEntity
 
 data class StatusCount(val status: AttendanceStatus, val cnt: Int)
 
