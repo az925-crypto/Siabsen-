@@ -80,20 +80,22 @@ interface AttendanceDao {
 
     @Transaction
     @Query(
-        """SELECT r.*, s.name AS studentName, c.name AS className
+        """SELECT r.*, s.name AS studentName, c.name AS className, ses.dateEpochDay AS sessionEpochDay
            FROM attendance_records r
            JOIN students s ON s.id = r.studentId
            LEFT JOIN classes c ON c.id = s.classId
+           JOIN attendance_sessions ses ON ses.id = r.sessionId
            WHERE r.sessionId = :sessionId ORDER BY s.name"""
     )
     fun observeRecordsOfSession(sessionId: String): Flow<List<RecordRow>>
 
     @Transaction
     @Query(
-        """SELECT r.*, s.name AS studentName, c.name AS className
+        """SELECT r.*, s.name AS studentName, c.name AS className, ses.dateEpochDay AS sessionEpochDay
            FROM attendance_records r
            JOIN students s ON s.id = r.studentId
            LEFT JOIN classes c ON c.id = s.classId
+           JOIN attendance_sessions ses ON ses.id = r.sessionId
            WHERE r.sessionId = :sessionId ORDER BY s.name"""
     )
     suspend fun recordsOfSession(sessionId: String): List<RecordRow>

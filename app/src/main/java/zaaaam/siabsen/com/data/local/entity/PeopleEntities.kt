@@ -20,10 +20,7 @@ data class UserEntity(
 )
 
 @Serializable
-@Entity(
-    tableName = "students",
-    indices = [Index(value = ["nis"], unique = true)]
-)
+@Entity(tableName = "students")
 data class StudentEntity(
     @PrimaryKey val id: String,          // NIS sebagai ID
     val nisn: String? = null,

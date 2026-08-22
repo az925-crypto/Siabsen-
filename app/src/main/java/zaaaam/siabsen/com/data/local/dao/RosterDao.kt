@@ -96,7 +96,7 @@ interface RosterDao {
     @Query(
         """SELECT s.*, c.name AS className FROM students s
            LEFT JOIN classes c ON c.id = s.classId
-           WHERE s.active = 1 AND (s.name LIKE '%' || :q || '%' OR s.nis LIKE '%' || :q || '%' OR IFNULL(s.nisn,'') LIKE '%' || :q || '%')
+           WHERE s.active = 1 AND (s.name LIKE '%' || :q || '%' OR s.id LIKE '%' || :q || '%' OR IFNULL(s.nisn,'') LIKE '%' || :q || '%')
            ORDER BY s.name LIMIT 30"""
     )
     suspend fun searchStudents(q: String): List<StudentRow>
