@@ -9,6 +9,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
 import zaaaam.siabsen.com.notification.CrashReporter
+import zaaaam.siabsen.com.notification.Notifier
 import zaaaam.siabsen.com.work.ReminderScheduler
 import javax.inject.Inject
 
