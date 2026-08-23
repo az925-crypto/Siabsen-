@@ -1,5 +1,6 @@
 package zaaaam.siabsen.com.ui.feature.student
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,7 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Button
@@ -49,7 +52,7 @@ fun StudentHome(nav: NavController, vm: StudentHomeVm = hiltViewModel()) {
         item {
             Column {
                 Text(
-                    "${greeting()}, ${ui.name.split(" ").first()}",
+                    "${greeting()}, ${ui.name.split(" ").first()} 👋",
                     style = MaterialTheme.typography.headlineMedium,
                 )
                 Text(
@@ -68,6 +71,11 @@ fun StudentHome(nav: NavController, vm: StudentHomeVm = hiltViewModel()) {
                     Spacer(Modifier.height(6.dp))
                     if (ui.todayStatus != null) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Box(
+                                Modifier
+                                    .size(12.dp)
+                                    .background(statusColor(ui.todayStatus!!), CircleShape),
+                            )
                             StatusChip(ui.todayStatus!!)
                             ui.checkIn?.let { Text("Masuk $it", style = MaterialTheme.typography.bodyMedium) }
                         }
@@ -85,7 +93,7 @@ fun StudentHome(nav: NavController, vm: StudentHomeVm = hiltViewModel()) {
                         OutlinedButton(
                             onClick = { vm.selfCheckIn({ toast("Berhasil: $it") }, { toast(it) }) },
                             enabled = ui.todayStatus == null,
-                        ) { Text("Check-in mandiri") }
+                        ) { Text("Check-in") }
                         OutlinedButton(
                             onClick = { vm.checkOut({ toast(it) }, { toast(it) }) },
                             enabled = ui.checkIn != null && ui.checkOut == null,
@@ -145,7 +153,7 @@ fun StudentHome(nav: NavController, vm: StudentHomeVm = hiltViewModel()) {
                     Text("PENGUMUMAN", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     vm.announcements.collectAsState().value.forEach { a ->
                         Card {
-                            Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp)) {
                                 Text(a.title, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.height(2.dp))
                                 Text(a.body, style = MaterialTheme.typography.bodyMedium)

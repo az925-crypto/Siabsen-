@@ -38,7 +38,7 @@ Aplikasi absensi sekolah **offline-first** dengan Kotlin + Jetpack Compose.
 | admin | Admin | 123456 |
 | guru | Guru | 123456 |
 | wali | Wali Kelas | 123456 |
-| azzam | Siswa | 123456 |
+| siswa | Siswa (Andi Wijaya) | 123456 |
 
 > Ganti PIN lewat menu Akun setelah login.
 

@@ -1,5 +1,6 @@
 package zaaaam.siabsen.com.ui.feature.auth
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -94,7 +96,11 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = hiltViewModel()) {
                 }
             }
             items(users) { u ->
-                Card(onClick = { selected = u }) {
+                Card(
+                    onClick = { selected = u },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                ) {
                     Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Avatar(u.displayName)
                         Spacer(Modifier.size(12.dp))
@@ -111,7 +117,7 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = hiltViewModel()) {
             item { Spacer(Modifier.height(24.dp)) }
             item {
                 Text(
-                    "Akun demo: admin / guru / wali / azzam — PIN 123456",
+                    "Akun demo: admin / guru / wali / siswa — PIN 123456",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

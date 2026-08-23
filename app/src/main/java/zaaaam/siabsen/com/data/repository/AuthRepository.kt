@@ -54,6 +54,7 @@ class AuthRepository @Inject constructor(
 
     suspend fun logout() {
         audit.log("LOGOUT")
+        settingsRepo.clearLastUser()
         session.clear()
     }
 

@@ -65,7 +65,7 @@ class BackupRepository @Inject constructor(
      * mode REPLACE: hapus isi lalu ganti total.
      * mode MERGE: gabung (baris dengan primary key sama ditimpa).
      */
-    suspend fun restore(source: Uri, replace: Boolean): RestoreResult {
+    suspend fun restore(source: Uri, replace: Boolean): RestoreResult = try {
         val text = context.contentResolver.openInputStream(source)?.use { stream ->
             BufferedReader(stream.reader(Charsets.UTF_8)).readText()
         } ?: return RestoreResult.Failure("Tidak bisa membaca file")
@@ -103,7 +103,11 @@ class BackupRepository @Inject constructor(
             "RESTORE", "DATABASE", null,
             "mode=${if (replace) "REPLACE" else "MERGE"} rows=${parsed.totalRows()} createdAt=${Instant.ofEpochMilli(parsed.createdAt)}"
         )
-        return RestoreResult.Success(parsed.totalRows())
+        RestoreResult.Success(parsed.totalRows())
+    } catch (e: SecurityException) {
+        RestoreResult.Failure("Tidak punya izin membaca file: ${e.message ?: e.javaClass.simpleName}")
+    } catch (e: Exception) {
+        RestoreResult.Failure("Gagal restore: ${e.message ?: e.javaClass.simpleName}")
     }
 
     private suspend fun clearAll(dao: zaaaam.siabsen.com.data.local.dao.BackupDao) {

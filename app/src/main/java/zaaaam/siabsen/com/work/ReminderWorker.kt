@@ -43,7 +43,7 @@ class ReminderWorker @AssistedInject constructor(
     private val settingsRepo: zaaaam.siabsen.com.data.repository.SettingsRepository,
 ) : CoroutineWorker(appContext, params) {
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = runCatching {
         val now = LocalTime.now()
         if (now.hour < 6 || now.hour >= 17) return Result.success()
 
@@ -90,5 +90,5 @@ class ReminderWorker @AssistedInject constructor(
             }
         }
         return Result.success()
-    }
+    }.getOrElse { Result.success() }
 }

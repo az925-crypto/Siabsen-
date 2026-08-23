@@ -54,18 +54,25 @@ class RosterRepository @Inject constructor(
         val errors = mutableListOf<String>()
         lines.forEachIndexed { idx, line ->
             if (idx == 0 && line.contains("NIS", ignoreCase = true)) return@forEachIndexed
-            val cols = line.split(",", ";").map { it.trim() }
-            if (cols.size < 3) { errors.add("Baris ${idx + 1}: format tidak sesuai"); return@forEachIndexed }
-            val nis = cols[0]
-            val name = cols[1]
-            val className = cols[2]
-            val nisn = cols.getOrNull(3)?.takeIf { it.isNotBlank() }
-            if (nis.isBlank() || name.isBlank()) { skipped++; return@forEachIndexed }
-            val classId = ensureClass(className)
-            val row = StudentEntity(id = nis, nisn = nisn, name = name, classId = classId)
-            val before = dao.studentRaw(nis)
-            dao.upsertStudent(row)
-            if (before == null) inserted++ else skipped++
+            runCatching {
+                val cols = line.split(",", ";").map { it.trim() }
+                require(cols.size >= 3) { "format tidak sesuai" }
+                val nis = cols[0]
+                val name = cols[1]
+                val className = cols[2]
+                val nisn = cols.getOrNull(3)?.takeIf { it.isNotBlank() }
+                if (nis.isBlank() || name.isBlank()) {
+                    skipped++
+                } else {
+                    val classId = ensureClass(className)
+                    val row = StudentEntity(id = nis, nisn = nisn, name = name, classId = classId)
+                    val before = dao.studentRaw(nis)
+                    dao.upsertStudent(row)
+                    if (before == null) inserted++ else skipped++
+                }
+            }.onFailure { e ->
+                errors.add("Baris ${idx + 1}: ${e.message ?: e.javaClass.simpleName}")
+            }
         }
         audit.log("IMPORT_STUDENTS_CSV", details = "insert=$inserted skip=$skipped err=${errors.size}")
         return ImportResult(inserted, skipped, errors)

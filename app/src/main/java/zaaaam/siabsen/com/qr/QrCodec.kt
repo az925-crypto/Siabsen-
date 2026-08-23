@@ -85,15 +85,23 @@ private fun hexToBytes(hex: String): ByteArray {
 object QrImage {
 
     fun bitmap(content: String, size: Int = 640): android.graphics.Bitmap {
+        val s = size.coerceAtLeast(1)
+        if (content.isBlank()) {
+            // QRCodeWriter.encode melempar IllegalArgumentException untuk konten kosong;
+            // kembalikan bitmap putih kecil sebagai fallback aman.
+            return android.graphics.Bitmap.createBitmap(s, s, android.graphics.Bitmap.Config.RGB_565).apply {
+                eraseColor(android.graphics.Color.WHITE)
+            }
+        }
         val hints = mapOf(
             com.google.zxing.EncodeHintType.ERROR_CORRECTION to com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.M,
             com.google.zxing.EncodeHintType.MARGIN to 1,
         )
         val matrix = com.google.zxing.qrcode.QRCodeWriter()
-            .encode(content, com.google.zxing.BarcodeFormat.QR_CODE, size, size, hints)
-        val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.RGB_565)
-        for (x in 0 until size) {
-            for (y in 0 until size) {
+            .encode(content, com.google.zxing.BarcodeFormat.QR_CODE, s, s, hints)
+        val bmp = android.graphics.Bitmap.createBitmap(s, s, android.graphics.Bitmap.Config.RGB_565)
+        for (x in 0 until s) {
+            for (y in 0 until s) {
                 bmp.setPixel(x, y, if (matrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
             }
         }

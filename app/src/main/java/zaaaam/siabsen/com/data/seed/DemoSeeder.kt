@@ -31,8 +31,9 @@ class DemoSeeder @Inject constructor(
 ) {
     suspend fun seedIfEmpty() {
         val roster = db.rosterDao()
-        // cek cepat: jika sudah ada user admin, skip
-        if (roster.userByUsername("admin") != null) return
+        // cek cepat: skip hanya jika seed inti lengkap (admin + siswa 001);
+        // jika parsial, lanjutkan seeding secara idempoten (upsert/IGNORE)
+        if (roster.userByUsername("admin") != null && roster.studentRaw("001") != null) return
 
         val academicId = db.academicDao().upsertAcademicYear(
             AcademicYearEntity(
@@ -77,7 +78,7 @@ class DemoSeeder @Inject constructor(
         }
 
         val students = listOf(
-            Triple("001", "Azzam Alfarisy", "L"),
+            Triple("001", "Andi Wijaya", "L"),
             Triple("002", "Budi Pratama", "L"),
             Triple("003", "Citra Maharani", "P"),
             Triple("004", "Dimas Saputra", "L"),
@@ -93,7 +94,7 @@ class DemoSeeder @Inject constructor(
                 UserEntity(username = "admin", displayName = "Administrator", role = Role.ADMIN, pinHash = pinHash),
                 UserEntity(username = "guru", displayName = "Budi Santoso", role = Role.TEACHER, linkedTeacherId = teacherGuru, pinHash = pinHash),
                 UserEntity(username = "wali", displayName = "Sari Wulandari", role = Role.HOMEROOM_TEACHER, linkedTeacherId = teacherWali, pinHash = pinHash),
-                UserEntity(username = "azzam", displayName = "Azzam Alfarisy", role = Role.STUDENT, linkedStudentId = "001", pinHash = pinHash),
+                UserEntity(username = "siswa", displayName = "Andi Wijaya", role = Role.STUDENT, linkedStudentId = "001", pinHash = pinHash),
             )
         )
 

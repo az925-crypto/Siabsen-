@@ -14,6 +14,9 @@ val Purple600 = Color(0xFF6A1B9A)
 val Orange600 = Color(0xFFEF6C00)
 val Slate800 = Color(0xFF37474F)
 val Surface0 = Color(0xFFF6F8FB)
+val Surface1 = Color(0xFFFFFFFF)
+val SurfaceVariantSoft = Color(0xFFEDF1F7)
+val OutlineSoft = Color(0xFFD9E0EA)
 val CardBorder = Color(0xFFE3E8F0)
 
 val StatusColors = mapOf(
