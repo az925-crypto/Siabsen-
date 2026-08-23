@@ -21,8 +21,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -63,9 +65,19 @@ fun QrBroadcast(nav: NavController, sessionId: String, vm: QrBroadcastVm = hiltV
 
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    render?.let { r ->
+                    var qrBmp by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+                    LaunchedEffect(render?.payload) {
+                        render?.let { r ->
+                            qrBmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                                QrImage.bitmap(r.payload, 560)
+                            }
+                        }
+                    }
+                    val bmp = qrBmp
+                    if (bmp != null && render != null) {
+                        val r = render!!
                         Image(
-                            bitmap = remember(r.payload) { QrImage.bitmap(r.payload, 560) }.asImageBitmap(),
+                            bitmap = bmp.asImageBitmap(),
                             contentDescription = "QR absensi",
                             modifier = Modifier.size(280.dp),
                         )
@@ -81,7 +93,9 @@ fun QrBroadcast(nav: NavController, sessionId: String, vm: QrBroadcastVm = hiltV
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    } ?: Text("Menyiapkan QR…")
+                    } else {
+                        Text("Menyiapkan QR…")
+                    }
                 }
             }
 

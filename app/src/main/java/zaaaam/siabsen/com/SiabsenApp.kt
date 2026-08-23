@@ -8,7 +8,7 @@ import android.os.Build
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
-import zaaaam.siabsen.com.notification.Notifier
+import zaaaam.siabsen.com.notification.CrashReporter
 import zaaaam.siabsen.com.work.ReminderScheduler
 import javax.inject.Inject
 
@@ -25,6 +25,7 @@ class SiabsenApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         zaaaam.siabsen.com.data.repository.AppContextHolder.set(this)
+        CrashReporter.install(this)
         createNotificationChannels()
         ReminderScheduler.scheduleDaily(this)
     }
