@@ -357,7 +357,7 @@ class AttendanceRepository @Inject constructor(
 
         // tren mingguan
         val now = LocalDate.now()
-        fun rate(from: LocalDate, to: LocalDate): Double {
+        suspend fun rate(from: LocalDate, to: LocalDate): Double {
             val rates = attendanceDao.studentRatesOnce(from.toEpochDay(), to.toEpochDay(), classId)
             val total = rates.sumOf { it.total }
             val attended = rates.sumOf { it.attended }

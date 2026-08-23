@@ -18,6 +18,9 @@ class AcademicRepository @Inject constructor(
     private val dao: AcademicDao,
     private val audit: AuditLogger,
 ) {
+    // Mapel lookup (untuk sesi per pelajaran)
+    suspend fun subjectById(id: Long) = dao.subjectById(id)
+
     // Jadwal
     fun scheduleForClass(classId: Long, day: DayOfWeek): Flow<List<ScheduleRow>> =
         dao.observeScheduleForClass(classId, day.value)

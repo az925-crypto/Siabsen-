@@ -7,6 +7,7 @@ import zaaaam.siabsen.com.data.local.entity.Role
 import zaaaam.siabsen.com.data.local.entity.UserEntity
 import zaaaam.siabsen.com.data.repository.AuthRepository
 import zaaaam.siabsen.com.data.repository.LoginResult
+import zaaaam.siabsen.com.data.repository.SchoolSettings
 import zaaaam.siabsen.com.data.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,7 +27,7 @@ class AuthViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val schoolSettings = settingsRepo.settings
-        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, SettingsRepository.SchoolSettings())
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, SchoolSettings())
 
     val busy = MutableStateFlow(false)
     val error = MutableStateFlow<String?>(null)
