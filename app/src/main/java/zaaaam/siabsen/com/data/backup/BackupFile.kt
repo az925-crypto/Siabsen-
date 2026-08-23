@@ -6,6 +6,7 @@ import zaaaam.siabsen.com.data.local.entity.AcademicYearEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceCorrectionEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceRecordEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceSessionEntity
+import zaaaam.siabsen.com.data.local.entity.AnnouncementEntity
 import zaaaam.siabsen.com.data.local.entity.AuditLogEntity
 import zaaaam.siabsen.com.data.local.entity.ClassEntity
 import zaaaam.siabsen.com.data.local.entity.LeaveRequestEntity
@@ -36,11 +37,12 @@ data class BackupFile(
     val corrections: List<AttendanceCorrectionEntity> = emptyList(),
     val leaves: List<LeaveRequestEntity> = emptyList(),
     val auditLogs: List<AuditLogEntity> = emptyList(),
+    val announcements: List<AnnouncementEntity> = emptyList(),
 ) {
     fun totalRows(): Int =
         users.size + students.size + teachers.size + classes.size + subjects.size +
             academicYears.size + schoolCalendar.size + schedules.size + sessions.size +
-            records.size + corrections.size + leaves.size + auditLogs.size
+            records.size + corrections.size + leaves.size + auditLogs.size + announcements.size
 
     fun integrityOk(): Boolean = totalRows() == rowCount
 }

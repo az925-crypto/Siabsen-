@@ -80,9 +80,22 @@ fun LeaveApproval(nav: NavController, vm: LeaveApprovalVm = hiltViewModel()) {
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Text(l.leave.reason, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        l.leave.attachmentPath?.let {
+                        l.leave.attachmentPath?.let { path ->
                             Spacer(Modifier.height(4.dp))
-                            Text("Lampiran tersedia", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                            OutlinedButton(onClick = {
+                                runCatching {
+                                    val file = java.io.File(path)
+                                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                                        context, context.packageName + ".fileprovider", file
+                                    )
+                                    context.startActivity(
+                                        android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                            setDataAndType(uri, if (path.endsWith(".pdf")) "application/pdf" else "image/*")
+                                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                    )
+                                }.onFailure { toast("Tidak ada aplikasi pembuka untuk lampiran") }
+                            }) { Text("Lihat Lampiran") }
                         }
                         Spacer(Modifier.height(10.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

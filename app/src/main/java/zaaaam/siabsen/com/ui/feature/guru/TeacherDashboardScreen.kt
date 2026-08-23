@@ -44,6 +44,7 @@ import java.time.LocalDate
 fun TeacherDashboard(nav: NavController, vm: TeacherDashboardVm = hiltViewModel()) {
     val sessions by vm.todaySessions.collectAsState()
     val insights by vm.insights.collectAsState()
+    val topLate by vm.topLate.collectAsState()
     val sessionName = hiltViewModel<TeacherSessionVm>().session.currentUserName
 
     LazyColumn(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -94,6 +95,34 @@ fun TeacherDashboard(nav: NavController, vm: TeacherDashboardVm = hiltViewModel(
                     )
                     Spacer(Modifier.height(6.dp))
                     Text("Hadir ${s.present} • Terlambat ${s.late} • Total record ${s.total}", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+
+        // Early warning + sering terlambat
+        item {
+            Card(onClick = { nav.navigate(Routes.EARLY_WARNING) }) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Early Warning Siswa", style = MaterialTheme.typography.titleMedium)
+                        Text("Monitoring kehadiran rendah", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text("→", style = MaterialTheme.typography.titleLarge)
+                }
+            }
+        }
+        if (topLate.isNotEmpty()) {
+            item { Text("PALING SERING TERLAMBAT (30 HARI)", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            items(topLate.size) { i ->
+                val t = topLate[i]
+                Card(onClick = { nav.navigate(Routes.studentDetail(t.studentId)) }) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column(Modifier.weight(1f)) {
+                            Text(t.studentName, fontWeight = FontWeight.SemiBold)
+                            t.className?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        }
+                        Text("${t.lateCnt}×", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }

@@ -46,6 +46,8 @@ data class SchoolSettings(
     val autoLockMinutes: Int = 5,
     val reminderHour: Int = 7,
     val reminderMinute: Int = 0,
+    val logoPath: String = "",
+    val deviceBindingEnabled: Boolean = false,
 )
 
 @Singleton
@@ -77,6 +79,8 @@ class SettingsRepository @Inject constructor(
         val REMINDER_HOUR = intPreferencesKey("reminder_hour")
         val REMINDER_MIN = intPreferencesKey("reminder_minute")
         val LAST_USER_ID = longPreferencesKey("last_user_id")
+        val LOGO_PATH = stringPreferencesKey("logo_path")
+        val DEVICE_BIND = booleanPreferencesKey("device_binding_enabled")
     }
 
     val settings: Flow<SchoolSettings> = context.dataStore.data.map { p ->
@@ -105,6 +109,8 @@ class SettingsRepository @Inject constructor(
             autoLockMinutes = p[K.AUTO_LOCK_MIN] ?: 5,
             reminderHour = p[K.REMINDER_HOUR] ?: 7,
             reminderMinute = p[K.REMINDER_MIN] ?: 0,
+            logoPath = p[K.LOGO_PATH] ?: "",
+            deviceBindingEnabled = p[K.DEVICE_BIND] ?: false,
         )
     }
 
@@ -137,8 +143,19 @@ class SettingsRepository @Inject constructor(
             p[K.AUTO_LOCK_MIN] = next.autoLockMinutes
             p[K.REMINDER_HOUR] = next.reminderHour
             p[K.REMINDER_MIN] = next.reminderMinute
+            p[K.LOGO_PATH] = next.logoPath
+            p[K.DEVICE_BIND] = next.deviceBindingEnabled
         }
     }
+
+    /** Key-value generik untuk dedup notifikasi & device binding */
+    suspend fun kvPut(key: String, value: String) {
+        context.dataStore.edit { it[stringPreferencesKey(key)] = value }
+    }
+
+    suspend fun kvGet(key: String): String? =
+        context.dataStore.data.first()[stringPreferencesKey(key)]
+
 
     suspend fun saveLastUser(id: Long) {
         context.dataStore.edit { it[K.LAST_USER_ID] = id }

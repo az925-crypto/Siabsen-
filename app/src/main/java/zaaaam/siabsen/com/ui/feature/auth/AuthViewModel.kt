@@ -25,6 +25,9 @@ class AuthViewModel @Inject constructor(
     val users: StateFlow<List<UserEntity>> = authRepo.observeActiveUsers()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val schoolSettings = settingsRepo.settings
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, SettingsRepository.SchoolSettings())
+
     val busy = MutableStateFlow(false)
     val error = MutableStateFlow<String?>(null)
 

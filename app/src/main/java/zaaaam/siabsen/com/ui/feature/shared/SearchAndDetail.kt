@@ -43,17 +43,32 @@ import zaaaam.siabsen.com.ui.feature.student.SubPageScaffold
 import java.time.LocalDate
 import javax.inject.Inject
 
+data class SearchResults(
+    val students: List<StudentRow> = emptyList(),
+    val teachers: List<zaaaam.siabsen.com.data.local.entity.TeacherEntity> = emptyList(),
+    val classes: List<zaaaam.siabsen.com.data.local.entity.ClassEntity> = emptyList(),
+    val subjects: List<zaaaam.siabsen.com.data.local.entity.SubjectEntity> = emptyList(),
+) {
+    val isEmpty: Boolean get() = students.isEmpty() && teachers.isEmpty() && classes.isEmpty() && subjects.isEmpty()
+}
+
 @HiltViewModel
 class SearchVm @Inject constructor(
     private val roster: RosterRepository,
 ) : ViewModel() {
 
-    private val _results = MutableStateFlow<List<StudentRow>>(emptyList())
-    val results: StateFlow<List<StudentRow>> = _results
+    private val _results = MutableStateFlow(SearchResults())
+    val results: StateFlow<SearchResults> = _results
 
     fun search(q: String) {
         viewModelScope.launch {
-            _results.value = if (q.isBlank()) emptyList() else roster.searchStudents(q)
+            if (q.isBlank()) { _results.value = SearchResults(); return@launch }
+            _results.value = SearchResults(
+                students = roster.searchStudents(q),
+                teachers = roster.searchTeachers(q),
+                classes = roster.searchClasses(q),
+                subjects = roster.searchSubjects(q),
+            )
         }
     }
 }
@@ -74,18 +89,43 @@ fun GlobalSearchScreen(nav: NavController, vm: SearchVm = hiltViewModel()) {
             )
             Spacer(Modifier.height(12.dp))
             LazyColumn(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (results.isEmpty() && q.isNotBlank()) item { EmptyState("Tidak ditemukan") }
-                items(results.size) { i ->
-                    val s = results[i]
-                    Card(onClick = { nav.navigate(zaaaam.siabsen.com.ui.navigation.Routes.studentDetail(s.student.id)) }) {
-                        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                            Avatar(s.student.name)
-                            Spacer(Modifier.padding(start = 10.dp))
-                            Column {
-                                Text(s.student.name, fontWeight = FontWeight.SemiBold)
-                                Text("NIS ${s.student.id}" + (s.className?.let { " • $it" } ?: ""), style = MaterialTheme.typography.bodyMedium)
+                if (results.isEmpty && q.isNotBlank()) item { EmptyState("Tidak ditemukan") }
+
+                if (results.students.isNotEmpty()) {
+                    item { Text("Siswa", style = MaterialTheme.typography.titleMedium) }
+                    items(results.students.size) { i ->
+                        val s = results.students[i]
+                        Card(onClick = { nav.navigate(zaaaam.siabsen.com.ui.navigation.Routes.studentDetail(s.student.id)) }) {
+                            Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                Avatar(s.student.name)
+                                Spacer(Modifier.padding(start = 10.dp))
+                                Column {
+                                    Text(s.student.name, fontWeight = FontWeight.SemiBold)
+                                    Text("NIS ${s.student.id}" + (s.className?.let { " • $it" } ?: ""), style = MaterialTheme.typography.bodyMedium)
+                                }
                             }
                         }
+                    }
+                }
+
+                if (results.teachers.isNotEmpty()) {
+                    item { Text("Guru", style = MaterialTheme.typography.titleMedium) }
+                    items(results.teachers.size) { i ->
+                        Card { Text(results.teachers[i].name, Modifier.fillMaxWidth().padding(14.dp), fontWeight = FontWeight.SemiBold) }
+                    }
+                }
+
+                if (results.classes.isNotEmpty()) {
+                    item { Text("Kelas", style = MaterialTheme.typography.titleMedium) }
+                    items(results.classes.size) { i ->
+                        Card { Text(results.classes[i].name, Modifier.fillMaxWidth().padding(14.dp), fontWeight = FontWeight.SemiBold) }
+                    }
+                }
+
+                if (results.subjects.isNotEmpty()) {
+                    item { Text("Mata Pelajaran", style = MaterialTheme.typography.titleMedium) }
+                    items(results.subjects.size) { i ->
+                        Card { Text(results.subjects[i].name, Modifier.fillMaxWidth().padding(14.dp), fontWeight = FontWeight.SemiBold) }
                     }
                 }
             }

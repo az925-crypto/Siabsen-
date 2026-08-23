@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +57,36 @@ fun SchoolSettings(nav: NavController, vm: SettingsVm = hiltViewModel()) {
             Card {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Profil Sekolah", style = MaterialTheme.typography.titleMedium)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (form.logoPath.isNotBlank()) {
+                            coil.compose.AsyncImage(
+                                model = java.io.File(form.logoPath),
+                                contentDescription = "Logo",
+                                modifier = Modifier.size(56.dp),
+                            )
+                        } else {
+                            Box(
+                                Modifier.size(56.dp),
+                                contentAlignment = Alignment.Center,
+                            ) { Text("Logo") }
+                        }
+                        val ctx = LocalContext.current
+                        val logoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                            if (uri != null) {
+                                runCatching {
+                                    val dir = java.io.File(ctx.filesDir, "logo").apply { mkdirs() }
+                                    val dst = java.io.File(dir, "logo.jpg")
+                                    ctx.contentResolver.openInputStream(uri)?.use { input ->
+                                        dst.outputStream().use { output -> input.copyTo(output) }
+                                    }
+                                    form = form.copy(logoPath = dst.absolutePath)
+                                }
+                            }
+                        }
+                        OutlinedButton(onClick = {
+                            logoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        }) { Text(if (form.logoPath.isBlank()) "Pilih Logo" else "Ganti Logo") }
+                    }
                     field("Nama sekolah", form.schoolName) { form = form.copy(schoolName = it) }
                     field("Alamat", form.schoolAddress) { form = form.copy(schoolAddress = it) }
                 }
@@ -102,11 +137,40 @@ fun SchoolSettings(nav: NavController, vm: SettingsVm = hiltViewModel()) {
                     }
                     SwitchRow("Validasi lokasi (GPS)", form.locationCheckEnabled) { form = form.copy(locationCheckEnabled = it) }
                     if (form.locationCheckEnabled) {
+                        val ctx = LocalContext.current
+                        var locMsg by remember { mutableStateOf<String?>(null) }
+                        val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                            if (granted) {
+                                val coord = zaaaam.siabsen.com.data.repository.LocationChecker.lastKnown()
+                                if (coord != null) {
+                                    form = form.copy(schoolLatitude = coord.first, schoolLongitude = coord.second)
+                                    locMsg = "Koordinat tersimpan: %.6f, %.6f".format(coord.first, coord.second)
+                                } else locMsg = "Lokasi belum tersedia — buka Maps dulu lalu coba lagi"
+                            } else locMsg = "Izin lokasi ditolak"
+                        }
+                        OutlinedButton(onClick = {
+                            permLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        }) { Text("Ambil koordinat dari GPS") }
+                        locMsg?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary) }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedTextField(value = form.schoolLatitude.toString(), onValueChange = { form = form.copy(schoolLatitude = it.toDoubleOrNull() ?: 0.0) }, label = { Text("Latitude") }, modifier = Modifier.weight(1f))
                             OutlinedTextField(value = form.schoolLongitude.toString(), onValueChange = { form = form.copy(schoolLongitude = it.toDoubleOrNull() ?: 0.0) }, label = { Text("Longitude") }, modifier = Modifier.weight(1f))
                         }
                         field("Radius (meter)", form.radiusMeters.toString()) { form = form.copy(radiusMeters = it.toIntOrNull() ?: 150) }
+                    }
+                }
+            }
+            Card {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Wi-Fi Sekolah (opsional)", style = MaterialTheme.typography.titleMedium)
+                    SwitchRow("Hanya boleh absen via Wi-Fi sekolah", form.wifiCheckEnabled) { form = form.copy(wifiCheckEnabled = it) }
+                    if (form.wifiCheckEnabled) {
+                        field("SSID Wi-Fi sekolah", form.wifiSsid) { form = form.copy(wifiSsid = it) }
+                        Text(
+                            "Nama Wi-Fi harus sama persis saat siswa check-in.",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
@@ -127,6 +191,7 @@ fun SchoolSettings(nav: NavController, vm: SettingsVm = hiltViewModel()) {
                     }
                     SwitchRow("App lock (PIN saat buka)", form.appLockEnabled) { form = form.copy(appLockEnabled = it) }
                     SwitchRow("Izinkan biometrik", form.biometricEnabled) { form = form.copy(biometricEnabled = it) }
+                    SwitchRow("Device binding (1 akun siswa = 1 HP)", form.deviceBindingEnabled) { form = form.copy(deviceBindingEnabled = it) }
                 }
             }
 

@@ -18,10 +18,16 @@ object Routes {
     const val GURU_CLASSES = "guru_classes"
     const val GURU_LEAVES = "guru_leaves"
     const val GURU_REPORTS = "guru_reports"
-    fun takeAttendance(classId: Long) = "take_attendance/$classId"
-    const val TAKE_ATTENDANCE_ROUTE = "take_attendance/{classId}"
+    const val EARLY_WARNING = "early_warning"
+
+    fun takeAttendance(classId: Long, subjectId: Long? = null) =
+        if (subjectId == null) "take_attendance/$classId"
+        else "take_attendance/$classId?subjectId=$subjectId"
+    const val TAKE_ATTENDANCE_ROUTE = "take_attendance/{classId}?subjectId={subjectId}"
+
     fun qrBroadcast(sessionId: String) = "qr_broadcast/$sessionId"
     const val QR_BROADCAST_ROUTE = "qr_broadcast/{sessionId}"
+
     fun recap(classId: Long) = "recap/$classId"
     const val RECAP_ROUTE = "recap/{classId}"
 
@@ -36,6 +42,7 @@ object Routes {
     const val ADMIN_SETTINGS = "admin_settings"
     const val ADMIN_BACKUP = "admin_backup"
     const val ADMIN_AUDIT = "admin_audit"
+    const val ADMIN_ANNOUNCEMENTS = "admin_announcements"
 
     // Shared
     const val SEARCH = "search"

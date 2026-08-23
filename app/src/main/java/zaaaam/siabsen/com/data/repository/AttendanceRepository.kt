@@ -201,6 +201,8 @@ class AttendanceRepository @Inject constructor(
         val leave = leaveDao.approvedLeaveCovering(studentId, today.toEpochDay())
         if (leave != null) return CheckResult.Failure("Kamu punya izin ${leave.type.label} yang disetujui hari ini")
 
+        guardCheck(studentId, deviceId, settings)?.let { return CheckResult.Failure(it) }
+
         val student = rosterDao.studentRaw(studentId)
             ?: return CheckResult.Failure("Data siswa tidak ditemukan")
         val classId = student.classId ?: return CheckResult.Failure("Kamu belum ditempatkan di kelas mana pun")
@@ -275,15 +277,8 @@ class AttendanceRepository @Inject constructor(
             return CheckResult.Failure("Kamu sudah tercatat hadir pada sesi ini")
         }
 
-        // lokasi opsional
-        settingsRepo.current().let { s ->
-            if (s.locationCheckEnabled && (s.schoolLatitude != 0.0 || s.schoolLongitude != 0.0)) {
-                val ok = LocationChecker.isWithinRadius(
-                    s.schoolLatitude, s.schoolLongitude, s.radiusMeters.toDouble()
-                )
-                if (!ok) return CheckResult.Failure("Di luar radius sekolah (${s.radiusMeters} m)")
-            }
-        }
+        val preSettings = settingsRepo.current()
+        guardCheck(studentId, deviceId, preSettings)?.let { return CheckResult.Failure(it) }
 
         qrDao.insertUsedToken(
             zaaaam.siabsen.com.data.local.entity.UsedQrTokenEntity(
@@ -358,18 +353,72 @@ class AttendanceRepository @Inject constructor(
 
     suspend fun insightForClass(classId: Long?): List<String> {
         val settings = settingsRepo.current()
-        val items = earlyWarning(classId, 30, settings.warnThresholdPercent, settings.criticalThresholdPercent)
         val insights = mutableListOf<String>()
+
+        // tren mingguan
+        val now = LocalDate.now()
+        fun rate(from: LocalDate, to: LocalDate): Double {
+            val rates = attendanceDao.studentRatesOnce(from.toEpochDay(), to.toEpochDay(), classId)
+            val total = rates.sumOf { it.total }
+            val attended = rates.sumOf { it.attended }
+            return if (total == 0) -1.0 else attended * 100.0 / total
+        }
+        val thisWeek = rate(now.minusDays(6), now)
+        val lastWeek = rate(now.minusDays(13), now.minusDays(7))
+        if (thisWeek >= 0 && lastWeek >= 0) {
+            val diff = thisWeek - lastWeek
+            insights.add(
+                if (diff >= 0) "Kehadiran minggu ini naik %.1f%% dibanding minggu lalu.".format(diff)
+                else "Kehadiran minggu ini turun %.1f%% dibanding minggu lalu.".format(-diff)
+            )
+        }
+
+        val items = earlyWarning(classId, 30, settings.warnThresholdPercent, settings.criticalThresholdPercent)
         val belowCritical = items.filter { it.level(settings.warnThresholdPercent, settings.criticalThresholdPercent) == 2 }
         if (belowCritical.isNotEmpty()) {
             insights.add("${belowCritical.size} siswa memiliki kehadiran di bawah ${settings.criticalThresholdPercent}%.")
         }
         val oftenLate = items.filter { it.lateCnt >= 3 }.size
         if (oftenLate > 0) insights.add("$oftenLate siswa terlambat >= 3 kali dalam 30 hari.")
-        return insights
+
+        // hari dengan keterlambatan tertinggi (28 hari)
+        val lateByDay = attendanceDao.lateCountsByDay(now.minusDays(27).toEpochDay(), now.toEpochDay())
+        if (lateByDay.isNotEmpty()) {
+            val worst = lateByDay.groupBy { LocalDate.ofEpochDay(it.d).dayOfWeek }
+                .maxByOrNull { e -> e.value.sumOf { it.cnt } }?.key
+            worst?.let {
+                val nm = when (it.value) {
+                    1 -> "Senin"; 2 -> "Selasa"; 3 -> "Rabu"; 4 -> "Kamis"; 5 -> "Jumat"; 6 -> "Sabtu"; else -> "Minggu"
+                }
+                insights.add("$nm menjadi hari dengan keterlambatan tertinggi dalam 4 minggu terakhir.")
+            }
+        }
+        return insights.take(5)
     }
 
     // ================= Helper =================
+
+    /**
+     * Validasi opsional sebelum check-in: lokasi GPS radius, Wi-Fi sekolah,
+     * dan device binding. Return pesan error atau null bila lolos.
+     */
+    private suspend fun guardCheck(studentId: String, deviceId: String?, settings: SchoolSettings): String? {
+        if (settings.locationCheckEnabled && (settings.schoolLatitude != 0.0 || settings.schoolLongitude != 0.0)) {
+            val ok = LocationChecker.isWithinRadius(settings.schoolLatitude, settings.schoolLongitude, settings.radiusMeters.toDouble())
+            if (!ok) return "Di luar radius sekolah (${settings.radiusMeters} m)"
+        }
+        if (settings.wifiCheckEnabled && settings.wifiSsid.isNotBlank()) {
+            val ssid = WifiChecker.currentSsid()?.removeSurrounding("\"") ?: ""
+            if (ssid != settings.wifiSsid) return "Harus terhubung ke Wi-Fi sekolah"
+        }
+        if (settings.deviceBindingEnabled && !deviceId.isNullOrBlank()) {
+            val bound = settingsRepo.kvGet("bind_$studentId")
+            if (bound == null) settingsRepo.kvPut("bind_$studentId", deviceId)
+            else if (bound != deviceId) return "Akun ini terikat pada device lain"
+        }
+        return null
+    }
+
 
     private suspend fun validateSchoolDay(today: LocalDate, settings: SchoolSettings): String? {
         val cal = academicDao.calendarDay(today.toEpochDay())
@@ -389,6 +438,43 @@ class AttendanceRepository @Inject constructor(
 
         fun parseHm(hm: String): LocalTime =
             runCatching { LocalTime.parse(hm.trim()) }.getOrElse { LocalTime.of(7, 0) }
+    }
+}
+
+/** Baca SSID Wi-Fi yang sedang terhubung (butuh izin lokasi di API 29+). */
+object WifiChecker {
+    @Suppress("DEPRECATION")
+    fun currentSsid(): String? {
+        val ctx = AppContextHolder.get() ?: return null
+        return try {
+            val wm = ctx.applicationContext.getSystemService(android.content.Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+            wm.connectionInfo?.ssid?.takeIf { it != "<unknown ssid>" }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /** Koordinat terakhir yang diketahui — dipakai admin untuk ambil titik sekolah */
+    fun lastKnown(): Pair<Double, Double>? {
+        val ctx = AppContextHolder.get() ?: return null
+        val lm = ctx.getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
+        val providers = listOf(
+            android.location.LocationManager.GPS_PROVIDER,
+            android.location.LocationManager.NETWORK_PROVIDER,
+            android.location.LocationManager.PASSIVE_PROVIDER,
+        )
+        var best: android.location.Location? = null
+        for (p in providers) {
+            try {
+                val l = lm.getLastKnownLocation(p) ?: continue
+                if (best == null || l.accuracy < best!!.accuracy) best = l
+            } catch (_: SecurityException) {
+                return null
+            } catch (_: IllegalArgumentException) {
+                continue
+            }
+        }
+        return best?.let { it.latitude to it.longitude }
     }
 }
 

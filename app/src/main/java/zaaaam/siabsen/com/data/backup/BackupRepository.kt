@@ -40,6 +40,7 @@ class BackupRepository @Inject constructor(
             corrections = dao.corrections(),
             leaves = dao.leaves(),
             auditLogs = dao.auditLogs().take(2000),
+            announcements = dao.announcements(),
         ).copy(rowCount = 0)
 
         val final = file.copy(rowCount = file.totalRows())
@@ -96,6 +97,7 @@ class BackupRepository @Inject constructor(
             dao.insertCorrections(parsed.corrections)
             dao.insertLeaves(parsed.leaves)
             dao.insertAuditLogs(parsed.auditLogs)
+            dao.insertAnnouncements(parsed.announcements)
         }
         audit.log(
             "RESTORE", "DATABASE", null,
@@ -121,5 +123,6 @@ class BackupRepository @Inject constructor(
         db.openHelper.writableDatabase.execSQL("DELETE FROM classes")
         db.openHelper.writableDatabase.execSQL("DELETE FROM teachers")
         db.openHelper.writableDatabase.execSQL("DELETE FROM users")
+        db.openHelper.writableDatabase.execSQL("DELETE FROM announcements")
     }
 }

@@ -10,6 +10,7 @@ import zaaaam.siabsen.com.data.local.dao.LeaveDao
 import zaaaam.siabsen.com.data.local.dao.QrDao
 import zaaaam.siabsen.com.data.local.dao.RosterDao
 import zaaaam.siabsen.com.data.local.entity.AcademicYearEntity
+import zaaaam.siabsen.com.data.local.entity.AnnouncementEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceCorrectionEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceRecordEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceSessionEntity
@@ -40,10 +41,11 @@ import zaaaam.siabsen.com.data.local.entity.UserEntity
         AttendanceCorrectionEntity::class,
         LeaveRequestEntity::class,
         AuditLogEntity::class,
+        AnnouncementEntity::class,
         QrBroadcastEntity::class,
         UsedQrTokenEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class SiabsenDatabase : RoomDatabase() {
@@ -54,6 +56,7 @@ abstract class SiabsenDatabase : RoomDatabase() {
     abstract fun auditDao(): AuditDao
     abstract fun qrDao(): QrDao
     abstract fun backupDao(): BackupDao
+    abstract fun announcementDao(): zaaaam.siabsen.com.data.local.dao.AnnouncementDao
 
     companion object {
         const val NAME = "siabsen.db"

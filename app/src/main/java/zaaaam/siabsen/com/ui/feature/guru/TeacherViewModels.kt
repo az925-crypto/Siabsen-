@@ -46,14 +46,24 @@ class TeacherDashboardVm @Inject constructor(
     private val _insights = MutableStateFlow<List<String>>(emptyList())
     val insights: StateFlow<List<String>> = _insights
 
+    private val _topLate = MutableStateFlow<List<zaaaam.siabsen.com.data.repository.EarlyWarningItem>>(emptyList())
+    val topLate: StateFlow<List<zaaaam.siabsen.com.data.repository.EarlyWarningItem>> = _topLate
+
     init {
-        viewModelScope.launch {
-            _insights.value = attendance.insightForClass(null)
-        }
+        viewModelScope.launch { refresh() }
     }
 
     fun refreshInsights() {
-        viewModelScope.launch { _insights.value = attendance.insightForClass(null) }
+        viewModelScope.launch { refresh() }
+    }
+
+    private suspend fun refresh() {
+        _insights.value = attendance.insightForClass(null)
+        val s = settingsRepo.current()
+        _topLate.value = attendance.earlyWarning(null, 30, s.warnThresholdPercent, s.criticalThresholdPercent)
+            .filter { it.lateCnt > 0 }
+            .sortedByDescending { it.lateCnt }
+            .take(5)
     }
 }
 
@@ -70,11 +80,21 @@ class TakeAttendanceVm @Inject constructor(
     private val attendance: AttendanceRepository,
     private val leaveRepo: LeaveRepository,
     private val settingsRepo: SettingsRepository,
+    val academic: zaaaam.siabsen.com.data.repository.AcademicRepository,
+    private val authRepo: zaaaam.siabsen.com.data.repository.AuthRepository,
     val session: zaaaam.siabsen.com.security.SessionManager,
 ) : ViewModel() {
 
     val classId = MutableStateFlow(0L)
+    val subjectId = MutableStateFlow<Long?>(null)
     val sessionId = MutableStateFlow<String?>(null)
+
+    /** jadwal hari ini untuk kelas ini (mode harian) */
+    val scheduleToday: StateFlow<List<zaaaam.siabsen.com.data.local.dao.ScheduleRow>> =
+        classId.flatMapLatest { cid ->
+            if (cid == 0L) flowOf(emptyList())
+            else academic.scheduleForClass(cid, java.time.DayOfWeek.from(java.time.LocalDate.now()))
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val students = classId.flatMapLatest { cid ->
         if (cid == 0L) flowOf(emptyList<StudentRow>()) else roster.observeStudentsOfClass(cid)
@@ -96,13 +116,17 @@ class TakeAttendanceVm @Inject constructor(
     val ui: StateFlow<Ui> = combine(students, records, classNameState) { s, r, cn -> Ui(s, r, cn) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Ui())
 
-    fun initFor(cid: Long) {
-        if (classId.value == cid) return
+    fun initFor(cid: Long, sid: Long?) {
+        if (classId.value == cid && subjectId.value == sid && sessionId.value != null) return
         classId.value = cid
+        subjectId.value = sid
         viewModelScope.launch {
-            classNameState.value = roster.classById(cid)?.name
-            // pakai sesi harian yang sudah ada hari ini, kalau tidak buat baru
-            val ses = attendance.ensureDailySession(cid, LocalDate.now())
+            val baseName = roster.classById(cid)?.name
+            classNameState.value = if (sid != null) {
+                "$baseName • ${academic.subjectById(sid ?: 0)?.name ?: "Mapel"}"
+            } else baseName
+            val ses = if (sid == null) attendance.ensureDailySession(cid, LocalDate.now())
+            else attendance.createSubjectSession(cid, sid)
             sessionId.value = ses?.id
         }
     }
@@ -118,11 +142,19 @@ class TakeAttendanceVm @Inject constructor(
         }
     }
 
-    /** Koreksi dengan alasan wajib. */
-    fun correct(student: StudentRow, newStatus: AttendanceStatus, reason: String, onDone: (String) -> Unit, onError: (String) -> Unit) {
+    /**
+     * Koreksi dengan alasan wajib. Perubahan dari ALPA ke status lain dianggap
+     * sensitif dan menuntut PIN wali kelas/admin.
+     */
+    fun correct(student: StudentRow, newStatus: AttendanceStatus, reason: String, confirmPin: String?, onDone: (String) -> Unit, onError: (String) -> Unit) {
         val sid = sessionId.value ?: return onError("Sesi belum siap")
         viewModelScope.launch {
             val existing = attendance.recordOf(sid, student.student.id)
+            val sensitive = existing != null &&
+                existing.status == AttendanceStatus.ABSENT && newStatus != AttendanceStatus.ABSENT
+            if (sensitive && !authRepo.verifyElevatedPin(confirmPin ?: "")) {
+                return@launch onError("PIN wali kelas/admin salah — perubahan ALPA butuh persetujuan")
+            }
             when {
                 existing != null ->
                     when (val res = attendance.correct(existing, newStatus, reason)) {

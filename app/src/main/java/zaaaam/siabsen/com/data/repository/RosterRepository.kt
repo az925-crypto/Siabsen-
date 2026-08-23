@@ -29,6 +29,10 @@ class RosterRepository @Inject constructor(
     suspend fun studentRaw(id: String): StudentEntity? = dao.studentRaw(id)
     suspend fun searchStudents(q: String): List<StudentRow> = dao.searchStudents(q.trim())
 
+    suspend fun searchTeachers(q: String) = dao.searchTeachers(q.trim())
+    suspend fun searchClasses(q: String) = dao.searchClasses(q.trim())
+    suspend fun searchSubjects(q: String) = dao.searchSubjects(q.trim())
+
     suspend fun saveStudent(s: StudentEntity) {
         val old = dao.studentRaw(s.id)
         dao.upsertStudent(s)

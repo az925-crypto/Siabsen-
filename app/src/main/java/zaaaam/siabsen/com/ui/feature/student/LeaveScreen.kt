@@ -82,7 +82,9 @@ class LeaveVm @Inject constructor(
     private suspend fun copyToInternal(uri: Uri): String? = withContext(Dispatchers.IO) {
         runCatching {
             val dir = File(appContext.filesDir, "attachments").apply { mkdirs() }
-            val file = File(dir, "leave_${System.currentTimeMillis()}.jpg")
+            val isPdf = appContext.contentResolver.getType(uri)?.contains("pdf") == true
+            val ext = if (isPdf) "pdf" else "jpg"
+            val file = File(dir, "leave_${System.currentTimeMillis()}.$ext")
             appContext.contentResolver.openInputStream(uri)?.use { input ->
                 file.outputStream().use { output -> input.copyTo(output) }
             }
@@ -105,8 +107,13 @@ fun LeaveRequest(nav: NavController, vm: LeaveVm = hiltViewModel()) {
     val leaves by vm.leaves.collectAsState()
     val context = LocalContext.current
 
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        photo = uri
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            photo = uri
+        }
     }
 
     SubPageScaffold(title = "Ajukan Izin / Sakit") { mod ->
@@ -128,9 +135,9 @@ fun LeaveRequest(nav: NavController, vm: LeaveVm = hiltViewModel()) {
                             minLines = 2,
                         )
                         OutlinedButton(onClick = {
-                            picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            picker.launch(arrayOf("image/*", "application/pdf"))
                         }) {
-                            Text(photo?.let { "Foto terlampir ✓" } ?: "Tambah foto bukti")
+                            Text(photo?.let { "Lampiran terpilih ✓" } ?: "Tambah foto / PDF bukti")
                         }
                         Button(onClick = {
                             vm.submit(type, from, to, reason, photo) { ok, msg ->

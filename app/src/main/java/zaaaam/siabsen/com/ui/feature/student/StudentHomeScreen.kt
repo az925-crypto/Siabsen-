@@ -138,6 +138,29 @@ fun StudentHome(nav: NavController, vm: StudentHomeVm = hiltViewModel()) {
             }
         }
 
+        // PENGUMUMAN
+        item {
+            if (vm.announcements.collectAsState().value.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("PENGUMUMAN", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    vm.announcements.collectAsState().value.forEach { a ->
+                        Card {
+                            Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                                Text(a.title, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.height(2.dp))
+                                Text(a.body, style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    a.authorName,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Pengajuan izin shortcut
         item {
             Card(onClick = { nav.navigate(Routes.STUDENT_LEAVE) }) {

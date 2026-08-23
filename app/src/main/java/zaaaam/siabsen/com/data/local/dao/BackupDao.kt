@@ -8,6 +8,7 @@ import zaaaam.siabsen.com.data.local.entity.AcademicYearEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceCorrectionEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceRecordEntity
 import zaaaam.siabsen.com.data.local.entity.AttendanceSessionEntity
+import zaaaam.siabsen.com.data.local.entity.AnnouncementEntity
 import zaaaam.siabsen.com.data.local.entity.AuditLogEntity
 import zaaaam.siabsen.com.data.local.entity.ClassEntity
 import zaaaam.siabsen.com.data.local.entity.LeaveRequestEntity
@@ -35,6 +36,7 @@ interface BackupDao {
     @Query("SELECT * FROM attendance_corrections") suspend fun corrections(): List<AttendanceCorrectionEntity>
     @Query("SELECT * FROM leave_requests") suspend fun leaves(): List<LeaveRequestEntity>
     @Query("SELECT * FROM audit_logs") suspend fun auditLogs(): List<AuditLogEntity>
+    @Query("SELECT * FROM announcements") suspend fun announcements(): List<AnnouncementEntity>
 
     // Insert dengan strategi tertentu
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertUsers(v: List<UserEntity>)
@@ -50,6 +52,7 @@ interface BackupDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertCorrections(v: List<AttendanceCorrectionEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertLeaves(v: List<LeaveRequestEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAuditLogs(v: List<AuditLogEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAnnouncements(v: List<AnnouncementEntity>)
 
     // Clear (mode replace)
     @Query("DELETE FROM used_qr_tokens") suspend fun clearUsedTokens()

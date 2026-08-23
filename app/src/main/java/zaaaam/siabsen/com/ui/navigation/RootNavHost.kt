@@ -22,7 +22,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import kotlinx.coroutines.launch
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -40,7 +46,9 @@ import zaaaam.siabsen.com.ui.feature.admin.SubjectsManage
 import zaaaam.siabsen.com.ui.feature.admin.TeachersManage
 import zaaaam.siabsen.com.ui.feature.admin.YearsManage
 import zaaaam.siabsen.com.ui.feature.auth.LoginScreen
+import zaaaam.siabsen.com.ui.feature.admin.AnnouncementsManage
 import zaaaam.siabsen.com.ui.feature.guru.ClassList
+import zaaaam.siabsen.com.ui.feature.guru.EarlyWarningScreen
 import zaaaam.siabsen.com.ui.feature.guru.TeacherDashboard as TeacherDashboardScreen
 import zaaaam.siabsen.com.ui.feature.guru.LeaveApproval
 import zaaaam.siabsen.com.ui.feature.guru.QrBroadcast
@@ -64,7 +72,29 @@ data class TabItem(val route: String, val label: String, val icon: ImageVector)
 @Composable
 fun RootNavHost() {
     val nav = rememberNavController()
-    val session: SessionManager = hiltViewModel<RootViewModel>().session
+    val rootVm: RootViewModel = hiltViewModel()
+    val session = rootVm.session
+
+    // Auto-lock: kunci aplikasi bila di background melebihi batas waktu
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lockScope = androidx.compose.runtime.rememberCoroutineScope()
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> rootVm.onAppBackground()
+                Lifecycle.Event.ON_RESUME -> {
+                    lockScope.launch {
+                        if (rootVm.shouldLockOnResume()) {
+                            nav.navigate(Routes.LOCK) { popUpTo(0) }
+                        }
+                    }
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val backStack by nav.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
@@ -96,7 +126,8 @@ fun RootNavHost() {
     val tabs: List<TabItem> = when {
         r.startsWith("student_") || ((r == Routes.PROFILE || r == Routes.SEARCH) && role == Role.STUDENT) -> studentTabs
         (r.startsWith("guru_") || r.startsWith("take_attendance") || r.startsWith("qr_broadcast") ||
-            r.startsWith("recap") || r == Routes.PROFILE || r == Routes.SEARCH) &&
+            r.startsWith("recap") || r.startsWith("early_warning") ||
+            r == Routes.PROFILE || r == Routes.SEARCH) &&
             (role == Role.TEACHER || role == Role.HOMEROOM_TEACHER) -> teacherTabs
         (r.startsWith("admin_") || r == Routes.PROFILE || r == Routes.SEARCH) && role == Role.ADMIN -> adminTabs
         else -> emptyList()
@@ -142,9 +173,23 @@ fun RootNavHost() {
             // ===== Guru / Wali kelas =====
             composable(Routes.GURU_DASHBOARD) { TeacherDashboardScreen(nav) }
             composable(Routes.GURU_CLASSES) { ClassList(nav) }
-            composable(Routes.TAKE_ATTENDANCE_ROUTE) { entry ->
-                TakeAttendance(nav, entry.arguments?.getString("classId")?.toLongOrNull() ?: 0L)
+            composable(
+                Routes.TAKE_ATTENDANCE_ROUTE,
+                arguments = listOf(
+                    navArgument("subjectId") {
+                        type = NavType.StringType; nullable = true; defaultValue = null
+                    }
+                ),
+            ) { entry ->
+                TakeAttendance(
+                    nav,
+                    classId = entry.arguments?.getString("classId")?.toLongOrNull() ?: 0L,
+                    subjectId = entry.arguments?.getString("subjectId")?.toLongOrNull(),
+                )
             }
+
+            composable(Routes.EARLY_WARNING) { EarlyWarningScreen(nav) }
+            composable(Routes.ADMIN_ANNOUNCEMENTS) { AnnouncementsManage(nav) }
             composable(Routes.QR_BROADCAST_ROUTE) { entry ->
                 QrBroadcast(nav, entry.arguments?.getString("sessionId") ?: "")
             }

@@ -60,12 +60,24 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = hiltViewModel()) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = {
-                Column {
-                    Text("SiAbsen", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-                    Text("Absensi sekolah offline-first", style = MaterialTheme.typography.bodyMedium)
-                }
-            })
+            TopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val school = vm.schoolSettings.collectAsState().value
+                        if (school.logoPath.isNotBlank()) {
+                            coil.compose.AsyncImage(
+                                model = java.io.File(school.logoPath),
+                                contentDescription = "Logo",
+                                modifier = Modifier.padding(end = 8.dp),
+                            )
+                        }
+                        Column {
+                            Text("SiAbsen", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+                            Text("Absensi sekolah offline-first", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                },
+            )
         }
     ) { pad ->
         LazyColumn(

@@ -11,6 +11,7 @@ import zaaaam.siabsen.com.data.local.SiabsenDatabase
 import zaaaam.siabsen.com.data.local.dao.AcademicDao
 import zaaaam.siabsen.com.data.local.dao.AttendanceDao
 import zaaaam.siabsen.com.data.local.dao.AuditDao
+import zaaaam.siabsen.com.data.local.dao.AnnouncementDao
 import zaaaam.siabsen.com.data.local.dao.BackupDao
 import zaaaam.siabsen.com.data.local.dao.LeaveDao
 import zaaaam.siabsen.com.data.local.dao.QrDao
@@ -35,4 +36,5 @@ object DatabaseModule {
     @Provides fun auditDao(db: SiabsenDatabase): AuditDao = db.auditDao()
     @Provides fun qrDao(db: SiabsenDatabase): QrDao = db.qrDao()
     @Provides fun backupDao(db: SiabsenDatabase): BackupDao = db.backupDao()
+    @Provides fun announcementDao(db: SiabsenDatabase): AnnouncementDao = db.announcementDao()
 }

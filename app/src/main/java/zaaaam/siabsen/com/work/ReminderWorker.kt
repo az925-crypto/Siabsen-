@@ -51,6 +51,29 @@ class ReminderWorker @AssistedInject constructor(
         val today = LocalDate.now()
         if (today.dayOfWeek.value !in settings.schoolDays) return Result.success()
 
+        // Guru/wali: kelas yang diampu (homeroom) belum ada record absensi hari ini
+        val staffUsers = db.rosterDao().activeStaffUsersOnce()
+        for (u in staffUsers) {
+            val tid = u.linkedTeacherId ?: continue
+            val teacher = db.rosterDao().teacherById(tid) ?: continue
+            val cid = teacher.homeroomClassId ?: continue
+            val cls = db.rosterDao().classById(cid) ?: continue
+            val ses = db.attendanceDao().dailySessionOf(cid, today.toEpochDay())
+            val hasRecords = ses != null && db.attendanceDao().recordsOfSession(ses.id).isNotEmpty()
+            val cutoff = LocalTime.of(settings.reminderHour, settings.reminderMinute).plusMinutes(30)
+            if (now.isAfter(cutoff) && !hasRecords) {
+                val key = "notified_class_${tid}_${today.toEpochDay()}"
+                if (settingsRepo.kvGet(key) == null) {
+                    notifier.reminder(
+                        "Kelas belum diabsen",
+                        "Kelas ${cls.name} hari ini belum memiliki data absensi.",
+                        ("clsmiss" + tid + today.toEpochDay()).hashCode(),
+                    )
+                    settingsRepo.kvPut(key, "1")
+                }
+            }
+        }
+
         // Cek semua akun siswa aktif: belum check-in setelah jam reminder & tidak punya izin
         val studentUsers = db.rosterDao().activeStudentUsersOnce()
         for (u in studentUsers) {

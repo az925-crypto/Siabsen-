@@ -191,7 +191,22 @@ interface AttendanceDao {
            ORDER BY cor.timestamp DESC LIMIT 200"""
     )
     fun observeCorrections(): Flow<List<CorrectionWithStudent>>
+
+    /** Jumlah terlambat per hari (untuk insight hari terlambat tertinggi) */
+    @Query(
+        """SELECT ses.dateEpochDay AS d, COUNT(*) AS cnt
+           FROM attendance_records r
+           JOIN attendance_sessions ses ON ses.id = r.sessionId
+           WHERE r.status = 'LATE' AND ses.dateEpochDay BETWEEN :fromDay AND :toDay
+           GROUP BY ses.dateEpochDay"""
+    )
+    suspend fun lateCountsByDay(fromDay: Long, toDay: Long): List<DayCount>
+
+    suspend fun studentRatesOnce(fromDay: Long, toDay: Long, classId: Long?): List<StudentRateRow> =
+        studentRates(fromDay, toDay, classId)
 }
+
+data class DayCount(val d: Long, val cnt: Int)
 
 data class CorrectionWithStudent(
     @Embedded val correction: AttendanceCorrectionEntity,

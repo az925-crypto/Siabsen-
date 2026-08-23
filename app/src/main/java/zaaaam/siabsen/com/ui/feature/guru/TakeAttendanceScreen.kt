@@ -51,9 +51,10 @@ private val QUICK_STATUSES = listOf(
 )
 
 @Composable
-fun TakeAttendance(nav: NavController, classId: Long, vm: TakeAttendanceVm = hiltViewModel()) {
-    LaunchedEffect(classId) { vm.initFor(classId) }
+fun TakeAttendance(nav: NavController, classId: Long, subjectId: Long? = null, vm: TakeAttendanceVm = hiltViewModel()) {
+    LaunchedEffect(classId, subjectId) { vm.initFor(classId, subjectId) }
     val ui by vm.ui.collectAsState()
+    val scheduleToday by vm.scheduleToday.collectAsState()
     var correctionTarget by remember { mutableStateOf<StudentRow?>(null) }
     val context = LocalContext.current
     fun toast(msg: String) = android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
@@ -86,6 +87,30 @@ fun TakeAttendance(nav: NavController, classId: Long, vm: TakeAttendanceVm = hil
                 }
             }
 
+            if (subjectId == null && scheduleToday.isNotEmpty()) {
+                item {
+                    Card {
+                        Column(Modifier.fillMaxWidth().padding(12.dp)) {
+                            Text("Absensi per mata pelajaran", style = MaterialTheme.typography.titleMedium)
+                            Text("Pilih mapel untuk membuka sesi terpisah", style = MaterialTheme.typography.bodyMedium)
+                            Spacer(Modifier.height(6.dp))
+                            scheduleToday.forEach { row ->
+                                Row(
+                                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text("${row.schedule.startTime} • ${row.subjectName}")
+                                    OutlinedButton(onClick = {
+                                        nav.navigate(Routes.takeAttendance(classId, row.schedule.subjectId))
+                                    }) { Text("Absen") }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             items(ui.students.size) { i ->
                 val s = ui.students[i]
                 val rec = ui.records.firstOrNull { it.record.studentId == s.student.id }
@@ -105,8 +130,8 @@ fun TakeAttendance(nav: NavController, classId: Long, vm: TakeAttendanceVm = hil
             studentName = target.student.name,
             currentStatus = ui.records.firstOrNull { it.record.studentId == target.student.id }?.record?.status,
             onDismiss = { correctionTarget = null },
-            onSubmit = { newStatus, reason ->
-                vm.correct(target, newStatus, reason, { toast(it) }, { toast(it) })
+            onSubmit = { newStatus, reason, pin ->
+                vm.correct(target, newStatus, reason, pin, { toast(it) }, { toast(it) })
                 correctionTarget = null
             },
         )
@@ -158,11 +183,14 @@ private fun StudentMarkRow(
 fun CorrectionDialog(
     studentName: String,
     currentStatus: AttendanceStatus?,
+    hasElevatedPin: Boolean = true,
     onDismiss: () -> Unit,
-    onSubmit: (AttendanceStatus, String) -> Unit,
+    onSubmit: (AttendanceStatus, String, String?) -> Unit,
 ) {
     var reason by remember { mutableStateOf("") }
+    var pin by remember { mutableStateOf("") }
     var selected by remember { mutableStateOf(currentStatus ?: AttendanceStatus.PRESENT) }
+    val sensitive = currentStatus == AttendanceStatus.ABSENT && selected != AttendanceStatus.ABSENT
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Koreksi: $studentName") },
@@ -187,10 +215,21 @@ fun CorrectionDialog(
                     label = { Text("Alasan koreksi (wajib)") },
                     supportingText = { Text("Tercatat di audit log") },
                 )
+                if (sensitive && hasElevatedPin) {
+                    OutlinedTextField(
+                        value = pin,
+                        onValueChange = { pin = it.filter(Char::isDigit).take(8) },
+                        label = { Text("PIN wali kelas/admin (wajib untuk ubah ALPA)") },
+                        singleLine = true,
+                    )
+                }
             }
         },
         confirmButton = {
-            TextButton(enabled = reason.isNotBlank(), onClick = { onSubmit(selected, reason.trim()) }) { Text("Simpan") }
+            TextButton(
+                enabled = reason.isNotBlank() && (!sensitive || !hasElevatedPin || pin.length >= 4),
+                onClick = { onSubmit(selected, reason.trim(), pin.ifBlank { null }) },
+            ) { Text("Simpan") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Batal") } },
     )

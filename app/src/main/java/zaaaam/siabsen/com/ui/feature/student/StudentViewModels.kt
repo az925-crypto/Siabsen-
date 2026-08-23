@@ -51,8 +51,12 @@ class StudentHomeVm @Inject constructor(
     private val attendance: AttendanceRepository,
     private val academic: zaaaam.siabsen.com.data.repository.AcademicRepository,
     private val settingsRepo: SettingsRepository,
+    db: zaaaam.siabsen.com.data.local.SiabsenDatabase,
     val session: SessionManager,
 ) : ViewModel() {
+
+    val announcements = db.announcementDao().observeLatest()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val sid: String? get() = session.linkedStudentId
 

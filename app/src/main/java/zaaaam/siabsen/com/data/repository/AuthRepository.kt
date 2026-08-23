@@ -81,6 +81,12 @@ class AuthRepository @Inject constructor(
 
     suspend fun allUsersCount(): Int = rosterDao.observeActiveUsers().first().size
 
+    /** Verifikasi PIN wali kelas/admin untuk koreksi sensitif */
+    suspend fun verifyElevatedPin(pin: String): Boolean =
+        rosterDao.elevatedUsers().any { hasher.verify(pin, it.pinHash) }
+
+    suspend fun hasElevatedPin(): Boolean = rosterDao.elevatedUsers().isNotEmpty()
+
     /** Nama user terakhir (untuk layar lock) tanpa membuka sesi */
     suspend fun lastUserDisplayName(): String? {
         val id = settingsRepo.lastUserId() ?: return null

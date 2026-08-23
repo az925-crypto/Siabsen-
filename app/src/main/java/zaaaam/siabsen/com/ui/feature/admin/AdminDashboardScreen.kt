@@ -115,4 +115,5 @@ private val ADMIN_MENU = listOf(
     "Kalender Sekolah" to Routes.ADMIN_CALENDAR,
     "Pengaturan Sekolah" to Routes.ADMIN_SETTINGS,
     "Backup & Restore" to Routes.ADMIN_BACKUP,
+    "Pengumuman" to Routes.ADMIN_ANNOUNCEMENTS,
 )

@@ -57,3 +57,13 @@ data class UsedQrTokenEntity(
     val token: String,
     val usedAt: Long = System.currentTimeMillis(),
 )
+
+@Serializable
+@Entity(tableName = "announcements")
+data class AnnouncementEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val body: String,
+    val authorName: String = "",
+    val createdAt: Long = System.currentTimeMillis(),
+)

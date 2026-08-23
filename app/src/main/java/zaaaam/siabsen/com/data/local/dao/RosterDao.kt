@@ -196,4 +196,20 @@ interface RosterDao {
 
     @Query("SELECT * FROM users WHERE active = 1 AND role = 'STUDENT' AND linkedStudentId IS NOT NULL")
     suspend fun activeStudentUsersOnce(): List<UserEntity>
+
+    @Query("SELECT * FROM users WHERE active = 1 AND role IN ('TEACHER','HOMEROOM_TEACHER') AND linkedTeacherId IS NOT NULL")
+    suspend fun activeStaffUsersOnce(): List<UserEntity>
+
+    @Query("SELECT * FROM users WHERE active = 1 AND role IN ('ADMIN','HOMEROOM_TEACHER') AND pinHash IS NOT NULL")
+    suspend fun elevatedUsers(): List<UserEntity>
+
+    // ---------- Search multi-tipe ----------
+    @Query("SELECT * FROM teachers WHERE active = 1 AND name LIKE '%' || :q || '%' ORDER BY name LIMIT 20")
+    suspend fun searchTeachers(q: String): List<TeacherEntity>
+
+    @Query("SELECT * FROM classes WHERE active = 1 AND name LIKE '%' || :q || '%' ORDER BY name LIMIT 20")
+    suspend fun searchClasses(q: String): List<ClassEntity>
+
+    @Query("SELECT * FROM subjects WHERE name LIKE '%' || :q || '%' ORDER BY name LIMIT 20")
+    suspend fun searchSubjects(q: String): List<SubjectEntity>
 }
