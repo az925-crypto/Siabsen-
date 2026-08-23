@@ -8,6 +8,7 @@ import zaaaam.siabsen.com.data.local.entity.LeaveStatus
 import zaaaam.siabsen.com.data.local.entity.LeaveType
 import zaaaam.siabsen.com.security.AuditLogger
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,6 +16,7 @@ import javax.inject.Singleton
 class LeaveRepository @Inject constructor(
     private val leaveDao: LeaveDao,
     private val audit: AuditLogger,
+    private val notifier: zaaaam.siabsen.com.notification.Notifier,
 ) {
     fun observePending(): Flow<List<LeaveRow>> = leaveDao.observePending()
     fun observeOfStudent(studentId: String): Flow<List<LeaveRow>> = leaveDao.observeOfStudent(studentId)
@@ -37,6 +39,13 @@ class LeaveRepository @Inject constructor(
             if (approve) "APPROVE_LEAVE" else "REJECT_LEAVE", "LEAVE",
             leave.id.toString(),
             "student=${leave.studentId} type=${leave.type}"
+        )
+        // notifikasi ke siswa (lokal)
+        notifier.leave(
+            if (approve) "Izin disetujui" else "Izin ditolak",
+            "Pengajuan ${leave.type.label} kamu mulai ${LocalDate.ofEpochDay(leave.dateFromEpochDay)} " +
+                (note?.takeIf { it.isNotBlank() }?.let { "— $it" } ?: "") +
+                if (approve) "." else ". Hubungi guru untuk info lebih lanjut."
         )
         return approve
     }

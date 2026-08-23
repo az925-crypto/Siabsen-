@@ -30,7 +30,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import zaaaam.siabsen.com.data.local.dao.LeaveRow
 import zaaaam.siabsen.com.data.local.dao.StudentRow
+import zaaaam.siabsen.com.data.local.entity.LeaveStatus
 import zaaaam.siabsen.com.data.repository.AttendanceRepository
 import zaaaam.siabsen.com.data.repository.LeaveRepository
 import zaaaam.siabsen.com.data.repository.RosterRepository
@@ -97,10 +99,12 @@ fun GlobalSearchScreen(nav: NavController, vm: SearchVm = hiltViewModel()) {
 class StudentDetailVm @Inject constructor(
     private val roster: RosterRepository,
     private val attendance: AttendanceRepository,
+    private val leaveRepo: LeaveRepository,
 ) : ViewModel() {
 
     data class Ui(
         val student: StudentRow? = null,
+        val leaves: List<LeaveRow> = emptyList(),
         val counts: Map<zaaaam.siabsen.com.data.local.entity.AttendanceStatus, Int> = emptyMap(),
         val percent: Int = 0,
         val recent: List<zaaaam.siabsen.com.data.local.dao.RecordRow> = emptyList(),
@@ -119,8 +123,10 @@ class StudentDetailVm @Inject constructor(
                 .firstOrNull()?.associate { it.status to it.cnt } ?: emptyMap()
             countsMap.forEach { (st, c) -> total += c; if (!st.countsAsAbsent) attended += c }
             val recent = attendance.observeStudentRecords(id, from, LocalDate.now()).firstOrNull() ?: emptyList()
+            val leaves = leaveRepo.observeOfStudent(id).firstOrNull() ?: emptyList()
             _ui.value = Ui(
                 student = row,
+                leaves = leaves.take(10),
                 counts = countsMap,
                 percent = if (total == 0) 0 else ((attended * 100.0) / total).toInt(),
                 recent = recent.take(15),
@@ -168,6 +174,31 @@ fun StudentDetailScreen(nav: NavController, studentId: String, vm: StudentDetail
                                 Text(st.label, color = zaaaam.siabsen.com.ui.components.statusColor(st))
                                 Text("${ui.counts[st] ?: 0}", fontWeight = FontWeight.Bold)
                             }
+                        }
+                    }
+                }
+            }
+            if (ui.leaves.isNotEmpty()) {
+                item { Text("Riwayat izin/sakit", style = MaterialTheme.typography.titleMedium) }
+                items(ui.leaves.size) { i ->
+                    val l = ui.leaves[i]
+                    Card {
+                        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column {
+                                Text(
+                                    "${l.leave.type.label} • ${LocalDate.ofEpochDay(l.leave.dateFromEpochDay)} s/d ${LocalDate.ofEpochDay(l.leave.dateToEpochDay)}",
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(l.leave.reason, style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Text(
+                                l.leave.status.label,
+                                color = when (l.leave.status) {
+                                    LeaveStatus.APPROVED -> MaterialTheme.colorScheme.primary
+                                    LeaveStatus.REJECTED -> MaterialTheme.colorScheme.error
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            )
                         }
                     }
                 }
