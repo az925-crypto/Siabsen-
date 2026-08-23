@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import zaaaam.siabsen.com.data.local.entity.AcademicYearEntity
 import zaaaam.siabsen.com.data.local.entity.SchoolCalendarEntity
 import zaaaam.siabsen.com.data.local.entity.ScheduleEntity
+import zaaaam.siabsen.com.data.local.entity.SubjectEntity
 
 data class ScheduleRow(
     @Embedded val schedule: ScheduleEntity,
@@ -21,6 +22,9 @@ data class ScheduleRow(
 
 @Dao
 interface AcademicDao {
+
+    @Query("SELECT * FROM subjects WHERE id = :id LIMIT 1")
+    suspend fun subjectById(id: Long): SubjectEntity?
 
     // ---------- Jadwal ----------
     @Transaction

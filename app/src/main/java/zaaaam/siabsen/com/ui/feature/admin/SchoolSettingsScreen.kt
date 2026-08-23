@@ -140,7 +140,7 @@ fun SchoolSettings(nav: NavController, vm: SettingsVm = hiltViewModel()) {
                         var locMsg by remember { mutableStateOf<String?>(null) }
                         val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
                             if (granted) {
-                                val coord = zaaaam.siabsen.com.data.repository.LocationChecker.lastKnown()
+                                val coord = zaaaam.siabsen.com.data.repository.WifiChecker.lastKnown()
                                 if (coord != null) {
                                     form = form.copy(schoolLatitude = coord.first, schoolLongitude = coord.second)
                                     locMsg = "Koordinat tersimpan: %.6f, %.6f".format(coord.first, coord.second)
