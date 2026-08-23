@@ -18,12 +18,13 @@ class PinHasher @Inject constructor() {
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
         val iterations = 60_000
         val hash = derive(pin, salt, iterations)
-        return "pbkdf2$$iterations$$${b64(salt)}$${b64(hash)}"
+        return "pbkdf2\$" + iterations + "\$" + b64(salt) + "\$" + b64(hash)
     }
 
     fun verify(pin: String, stored: String?): Boolean {
         if (stored.isNullOrBlank()) return false
-        val parts = stored.split("$")
+        // filterNot(blank): kompatibel dengan entri lama yang mengandung '$$'
+        val parts = stored.split("$").filterNot { it.isBlank() }
         if (parts.size != 4 || parts[0] != "pbkdf2") return false
         val iterations = parts[1].toIntOrNull() ?: return false
         val salt = unb64(parts[2]) ?: return false
